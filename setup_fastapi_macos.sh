@@ -23,9 +23,13 @@ if ! command -v python3 &> /dev/null; then
 fi
 
 # Step 3: 使用当前工作目录作为项目目录
-echo "Using current directory as project directory..."
-PROJECT_DIR=$(pwd)
-echo "Project directory set to: $PROJECT_DIR"
+# echo "Using current directory as project directory..."
+# PROJECT_DIR=$(pwd)
+# echo "Project directory set to: $PROJECT_DIR"
+
+# Step 3.1: 执行另一个 Bash 文件
+echo "Executing additional script..."
+bash ./create_fastapi_structure.sh
 
 # Step 4: 创建名为 fast_api 的虚拟环境
 echo "Creating virtual environment named 'fast_api'..."

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 项目名称
-PROJECT_NAME="fastapi_project"
+PROJECT_NAME="fast_api"
 
 # 创建项目目录
 echo "Creating FastAPI project structure..."
