@@ -27,7 +27,7 @@ fi
 # PROJECT_DIR=$(pwd)
 # echo "Project directory set to: $PROJECT_DIR"
 
-# Step 3.1: 执行另一个 Bash 文件
+# Step 3 : 执行另一个 Bash 文件
 echo "Executing additional script..."
 bash ./create_fastapi_structure.sh
 

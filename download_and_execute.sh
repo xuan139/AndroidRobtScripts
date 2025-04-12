@@ -25,7 +25,7 @@ echo "Executing setup_fastapi_macos.sh..."
 
 # 检查执行是否成功
 if [ $? -eq 0 ]; then
-    echo "Script executed successfully!"
+    echo "setup_fastapi_macos.sh executed successfully!"
 else
     echo "Failed to execute setup_fastapi_macos.sh."
     exit 1
