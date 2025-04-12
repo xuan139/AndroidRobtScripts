@@ -1,25 +1,40 @@
 #!/bin/bash
 
-# 定义 GitHub 文件 URL
-SETUP_SCRIPT_URL="https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/setup_fastapi_macos.sh"
+# 定义要下载的文件列表
+FILES=(
+    "create_fastapi_structure.sh"
+    "setup_fastapi_crud.sh"
+    "setup_fastapi_macos.sh"
+)
 
-# Step 1: 下载 setup_fastapi_macos.sh
-echo "Downloading setup_fastapi_macos.sh from GitHub..."
-curl -o setup_fastapi_macos.sh $SETUP_SCRIPT_URL
+# GitHub 仓库的基础 URL
+BASE_URL="https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main"
 
-# 检查下载是否成功
-if [ $? -eq 0 ]; then
-    echo "setup_fastapi_macos.sh downloaded successfully!"
-else
-    echo "Failed to download setup_fastapi_macos.sh. Exiting."
+# 下载标志
+ALL_DOWNLOADED=true
+
+# Step 1: 下载所有文件
+for FILE in "${FILES[@]}"; do
+    echo "Downloading $FILE from GitHub..."
+    curl -o $FILE $BASE_URL/$FILE
+
+    # 检查下载是否成功
+    if [ $? -eq 0 ]; then
+        echo "$FILE downloaded successfully!"
+        chmod +x $FILE  # 赋予可执行权限
+    else
+        echo "Failed to download $FILE."
+        ALL_DOWNLOADED=false
+    fi
+done
+
+# 检查是否所有文件都下载成功
+if [ "$ALL_DOWNLOADED" = false ]; then
+    echo "One or more files failed to download. Exiting."
     exit 1
 fi
 
-# Step 2: 赋予执行权限
-echo "Granting execution permissions to setup_fastapi_macos.sh..."
-chmod +x setup_fastapi_macos.sh
-
-# Step 3: 执行脚本
+# Step 2: 执行 setup_fastapi_macos.sh
 echo "Executing setup_fastapi_macos.sh..."
 ./setup_fastapi_macos.sh
 
