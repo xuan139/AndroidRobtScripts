@@ -60,4 +60,4 @@ source fast_api/bin/activate  # 确保进入虚拟环境
 # uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app.main --host 0.0.0.0 --port 8000 --reload

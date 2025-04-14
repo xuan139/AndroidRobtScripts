@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Face Detection and Audio Recording</title>
+  <!-- 引入 face-api.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+</head>
+<body>
+  <h1>Face Detection and Audio Recording</h1>
+  <video id="camera" width="640" height="480" autoplay muted></video>
+  <canvas id="overlay" width="640" height="480"></canvas>
+  <p id="status">Status: Waiting for faces...</p>
+  <button id="startRecording" disabled>Start Recording</button>
+  <button id="stopRecording" disabled>Stop Recording</button>
+  <audio id="audio" controls></audio>
+
+  <script>
+    const camera = document.getElementById('camera');
+    const overlay = document.getElementById('overlay');
+    const status = document.getElementById('status');
+    const startButton = document.getElementById('startRecording');
+    const stopButton = document.getElementById('stopRecording');
+    const audioElement = document.getElementById('audio');
+    const context = overlay.getContext('2d');
+
+    let mediaRecorder;
+    let audioChunks = [];
+
+    // 加载 face-api.js 模型
+    Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/models'),
+    ]).then(requestCameraPermission);
+
+    function requestCameraPermission() {
+      // 主动请求用户权限
+      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then((stream) => {
+          camera.srcObject = stream;
+          camera.play();
+
+          // 启动人脸检测
+          startFaceDetection();
+        })
+        .catch((err) => {
+          console.error("Error accessing camera or microphone:", err);
+          alert("Failed to access the camera or microphone. Please check permissions.");
+        });
+    }
+
+    function startFaceDetection() {
+      const displaySize = { width: camera.width, height: camera.height };
+      faceapi.matchDimensions(overlay, displaySize);
+
+      setInterval(async () => {
+        const detections = await faceapi.detectAllFaces(camera, new faceapi.TinyFaceDetectorOptions());
+        context.clearRect(0, 0, overlay.width, overlay.height);
+
+        if (detections.length > 0) {
+          status.textContent = `Status: ${detections.length} face(s) detected`;
+          startButton.disabled = false; // 启用录音按钮
+        } else {
+          status.textContent = "Status: No faces detected";
+          startButton.disabled = true; // 禁用录音按钮
+        }
+
+        const resizedDetections = faceapi.resizeResults(detections, displaySize);
+        faceapi.draw.drawDetections(overlay, resizedDetections);
+      }, 200); // 每 200 毫秒检测一次
+    }
+
+    startButton.addEventListener('click', () => {
+      const audioStream = camera.srcObject;
+      mediaRecorder = new MediaRecorder(audioStream);
+      mediaRecorder.addEventListener('dataavailable', event => {
+        audioChunks.push(event.data);
+      });
+
+      mediaRecorder.addEventListener('stop', () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        audioElement.src = audioUrl;
+        audioChunks = []; // 清空录音数据
+      });
+
+      mediaRecorder.start();
+      startButton.disabled = true;
+      stopButton.disabled = false;
+    });
+
+    stopButton.addEventListener('click', () => {
+      mediaRecorder.stop();
+      startButton.disabled = false;
+      stopButton.disabled = true;
+    });
+  </script>
+</body>
+</html>

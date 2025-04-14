@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Face Detection and Audio Recording</title>
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+  <style>
+    video, canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    #controls {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      gap: 10px;
+    }
+
+    #status {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    #startRecording, #stopRecording {
+      font-size: 20px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+
+    #startRecording {
+      background-color: #28a745;
+      color: white;
+    }
+
+    #stopRecording {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    #startRecording:disabled,
+    #stopRecording:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <h1>Face Detection and Audio Recording</h1>
+  <video id="camera" width="640" height="480" autoplay muted playsinline></video>
+  <canvas id="overlay" width="640" height="480"></canvas>
+
+  <div id="controls">
+    <p id="status">Status: Initializing...</p>
+    <button id="startRecording" disabled>🎙️ Start Recording</button>
+    <button id="stopRecording" disabled>⏹️ Stop Recording</button>
+    <audio id="audio" controls></audio>
+  </div>
+
+  <script>
+    const camera = document.getElementById('camera');
+    const overlay = document.getElementById('overlay');
+    const context = overlay.getContext('2d');
+    const status = document.getElementById('status');
+    const startButton = document.getElementById('startRecording');
+    const stopButton = document.getElementById('stopRecording');
+    const audioElement = document.getElementById('audio');
+
+    let mediaRecorder;
+    let audioChunks = [];
+
+    // Load face-api.js models
+    Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models')
+    ])
+    .then(() => {
+      console.log("FaceAPI model loaded.");
+      return navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    })
+    .then((stream) => {
+      console.log("Camera and microphone granted.");
+      camera.srcObject = stream;
+      camera.onloadedmetadata = () => {
+        camera.play();
+        startFaceDetection();
+      };
+    })
+    .catch(err => {
+      console.error("Camera/microphone error:", err);
+      alert("Unable to access camera or microphone. Please allow permissions.");
+    });
+
+    function startFaceDetection() {
+      const displaySize = { width: camera.width, height: camera.height };
+      faceapi.matchDimensions(overlay, displaySize);
+
+      setInterval(async () => {
+        const detections = await faceapi.detectAllFaces(camera, new faceapi.TinyFaceDetectorOptions());
+        context.clearRect(0, 0, overlay.width, overlay.height);
+
+        if (detections.length > 0) {
+          status.textContent = `Status: ${detections.length} face(s) detected`;
+          startButton.disabled = false;
+        } else {
+          status.textContent = "Status: No faces detected";
+          startButton.disabled = true;
+        }
+
+        const resized = faceapi.resizeResults(detections, displaySize);
+        faceapi.draw.drawDetections(overlay, resized);
+      }, 200);
+    }
+
+    startButton.addEventListener('click', () => {
+      const audioStream = camera.srcObject;
+      mediaRecorder = new MediaRecorder(audioStream);
+      audioChunks = [];
+
+      mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        audioElement.src = audioUrl;
+      };
+
+      mediaRecorder.start();
+      startButton.disabled = true;
+      stopButton.disabled = false;
+      status.textContent = "Status: Recording...";
+    });
+
+    stopButton.addEventListener('click', () => {
+      mediaRecorder.stop();
+      startButton.disabled = false;
+      stopButton.disabled = true;
+      status.textContent = "Status: Recording stopped.";
+    });
+  </script>
+</body>
+</html>
