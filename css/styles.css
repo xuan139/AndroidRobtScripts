@@ -1,0 +1,86 @@
+body {
+    font-family: "Arial", sans-serif;
+    margin: 0;
+    padding: 0;
+    background-image: url('https://images.unsplash.com/photo-1603351107601-ff36cae2d5e3');
+    background-size: cover;
+    background-position: center;
+    color: white;
+  }
+  
+  header {
+    text-align: center;
+    padding: 2rem 0 1rem;
+  }
+  
+  h1 {
+    margin-bottom: 0.5rem;
+  }
+  
+  .container {
+    width: 50%;
+    margin: 0 auto;
+  }
+  
+  section {
+    margin-bottom: 2rem;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  }
+  
+  .menu-item {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s ease, background-color 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .menu-item:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.03);
+  }
+  
+  .menu-item strong {
+    font-size: 1.2rem;
+    color: #ffec8b;
+  }
+  
+  select {
+    padding: 5px 10px;
+    font-size: 1rem;
+  }
+  
+  #totalPrice {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 1rem;
+    color: yellow;
+  }
+  
+  #map {
+    height: 400px;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+  }
+  
+  .language-btn {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 10px;
+    font-size: 14px;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
