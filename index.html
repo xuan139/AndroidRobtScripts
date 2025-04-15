@@ -1,29 +1,37 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>语音监听 Demo</title>
+  <meta charset="UTF-8" />
+  <title>Korean Food Ordering & Travel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
   <style>
     body {
+      margin: 0;
       font-family: sans-serif;
       background: #f0f0f0;
-      margin: 0;
-      padding: 0;
     }
-    #container {
-      position: absolute;
-      top: 10px;
-      left: 10px;
+
+    .layout {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+    }
+
+    .section {
       background: #fff;
-      padding: 16px;
+      padding: 12px;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      width: 340px;
+      width: 32%;
+      box-sizing: border-box;
     }
+
     video {
       width: 100%;
       border-radius: 6px;
     }
+
     #volumeBar {
       height: 12px;
       background: #ddd;
@@ -31,46 +39,167 @@
       border-radius: 5px;
       overflow: hidden;
     }
+
     #volumeFill {
       height: 100%;
       width: 0%;
       background: #28a745;
       transition: width 0.1s;
     }
-    #status {
-      margin-top: 10px;
-      font-weight: bold;
-      color: #333;
-    }
-    #log, #volumeLevel, #countdown {
-      margin-top: 8px;
-      font-size: 14px;
-      color: #555;
-    }
+
     #countdown {
-      font-size: 16px;
-      color: #d00;
       font-weight: bold;
+      color: red;
+    }
+
+    #menuList .dish {
+      margin-bottom: 10px;
+    }
+
+    button {
+      margin: 4px 4px 4px 0;
+    }
+
+    #map {
+      height: 300px;
+      margin: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
   </style>
 </head>
 <body>
-  <div id="container">
-    <video id="camera" autoplay muted></video>
-    <div id="volumeBar"><div id="volumeFill"></div></div>
-    <div id="volumeLevel">音量: 0 (阈值: 35)</div>
-    <div id="status">初始化中...</div>
-    <div id="countdown"></div>
-    <div id="log"></div>
+  <div class="layout">
+    <!-- Left: Camera + Mic -->
+    <div class="section" id="micSection">
+      <h3>Voice Recognition</h3>
+      <video id="camera" autoplay muted></video>
+      <div id="volumeBar"><div id="volumeFill"></div></div>
+      <div id="volumeLevel">Volume: 0 (Threshold: 10)</div>
+      <div id="status">Initializing...</div>
+      <div id="countdown"></div>
+      <div id="log"></div>
+    </div>
+
+    <!-- Center: Menu -->
+    <div class="section">
+      <h3>Menu</h3>
+      <div id="menuList"></div>
+      <h4>Cart</h4>
+      <div id="cartList">Cart is empty</div>
+      <div id="cartTotal">Total: ₩0</div>
+      <button onclick="submitOrder()">Submit Order</button>
+      <div id="submittedText"></div>
+    </div>
+
+    <!-- Right: Travel -->
+    <div class="section">
+      <h3>Korean Tourist Attractions</h3>
+      <ul>
+        <li><strong>Gyeongbokgung Palace</strong> – A royal palace of the Joseon dynasty</li>
+        <li><strong>Namsan Tower</strong> – Offers panoramic views of Seoul</li>
+        <li><strong>Haeundae Beach (Busan)</strong> – Beautiful beach with urban scenery</li>
+        <li><strong>Jeju Island</strong> – Known for its nature and Hallasan mountain</li>
+        <li><strong>Insadong</strong> – Street for traditional Korean culture and crafts</li>
+      </ul>
+      <img src="https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=4ff44d6e-1214-4713-b235-4f1265d87dd7" alt="Korea Travel" width="100%" style="border-radius: 6px;" />
+    </div>
   </div>
 
+  <!-- Map -->
+  <div id="map"></div>
+
+  <!-- Leaflet Map JS -->
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
   <script>
-    const video = document.getElementById('camera');
-    const volumeFill = document.getElementById('volumeFill');
-    const volumeLevel = document.getElementById('volumeLevel');
-    const statusEl = document.getElementById('status');
-    const logEl = document.getElementById('log');
-    const countdownEl = document.getElementById('countdown');
+    const map = L.map('map').setView([37.5665, 126.9780], 12); // Seoul center
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+    L.marker([37.5665, 126.9780]).addTo(map).bindPopup("Seoul City Hall");
+  </script>
+
+  <!-- Menu and Mic JS -->
+  <script>
+    // ===== Menu Logic =====
+    const menu = [
+      { name: "Bulgogi", price: 12000, quantity: 0 },
+      { name: "Kimchi Stew", price: 8000, quantity: 0 },
+      { name: "Bibimbap", price: 10000, quantity: 0 },
+      { name: "Fried Chicken", price: 15000, quantity: 0 },
+    ];
+    const cart = [];
+
+    function renderMenu() {
+      const menuList = document.getElementById("menuList");
+      menuList.innerHTML = "";
+      menu.forEach((item, i) => {
+        const el = document.createElement("div");
+        el.className = "dish";
+        el.innerHTML = `
+          <div><strong>${item.name}</strong> – ₩${item.price}</div>
+          <button onclick="changeQuantity(${i}, -1)">－</button>
+          ${item.quantity}
+          <button onclick="changeQuantity(${i}, 1)">＋</button>
+          <button onclick="addToCart(${i})">Add</button>
+        `;
+        menuList.appendChild(el);
+      });
+    }
+
+    function changeQuantity(index, delta) {
+      menu[index].quantity = Math.max(0, menu[index].quantity + delta);
+      renderMenu();
+    }
+
+    function addToCart(index) {
+      const item = menu[index];
+      if (item.quantity <= 0) return;
+      const existing = cart.find(c => c.name === item.name);
+      if (existing) {
+        existing.quantity += item.quantity;
+      } else {
+        cart.push({ name: item.name, price: item.price, quantity: item.quantity });
+      }
+      item.quantity = 0;
+      renderMenu();
+      updateCart();
+    }
+
+    function updateCart() {
+      const list = document.getElementById("cartList");
+      const total = document.getElementById("cartTotal");
+      if (cart.length === 0) {
+        list.innerText = "Cart is empty";
+        total.innerText = "Total: ₩0";
+        return;
+      }
+      let html = "";
+      let sum = 0;
+      cart.forEach(i => {
+        html += `<div>${i.name} × ${i.quantity} = ₩${i.price * i.quantity}</div>`;
+        sum += i.price * i.quantity;
+      });
+      list.innerHTML = html;
+      total.innerText = `Total: ₩${sum}`;
+    }
+
+    function submitOrder() {
+      if (cart.length === 0) return;
+      document.getElementById("submittedText").innerText = "Order has been submitted!";
+      cart.length = 0;
+      updateCart();
+    }
+
+    renderMenu();
+
+    // ===== Microphone & Volume Logic =====
+    const video = document.getElementById("camera");
+    const volumeFill = document.getElementById("volumeFill");
+    const volumeLevel = document.getElementById("volumeLevel");
+    const statusEl = document.getElementById("status");
+    const logEl = document.getElementById("log");
+    const countdownEl = document.getElementById("countdown");
 
     let speaking = false;
     let silenceStart = null;
@@ -80,31 +209,29 @@
 
     const speakingThreshold = 10;
     const silenceDelay = 5000;
-    const maxSpeakingDuration = 10000; // 10 秒
+    const maxSpeakingDuration = 10000;
 
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then(stream => {
         video.srcObject = stream;
-
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const sourceNode = audioCtx.createMediaStreamSource(stream);
-        const analyser = audioCtx.createAnalyser();
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const source = ctx.createMediaStreamSource(stream);
+        const analyser = ctx.createAnalyser();
         analyser.fftSize = 256;
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
-        sourceNode.connect(analyser);
-
-        statusEl.innerText = "请说话...";
+        source.connect(analyser);
+        statusEl.innerText = "Listening...";
 
         function startCountdown() {
-          let remaining = maxSpeakingDuration / 1000;
-          countdownEl.innerText = `倒计时: ${remaining} 秒`;
+          let left = maxSpeakingDuration / 1000;
+          countdownEl.innerText = `Time left: ${left}s`;
           countdownTimer = setInterval(() => {
-            remaining--;
-            countdownEl.innerText = `倒计时: ${remaining} 秒`;
-            if (remaining <= 0) {
+            left--;
+            countdownEl.innerText = `Time left: ${left}s`;
+            if (left <= 0) {
               clearInterval(countdownTimer);
-              simulateSend("超时自动发送");
+              simulateSend("Auto-sent due to timeout");
             }
           }, 1000);
         }
@@ -114,20 +241,15 @@
           countdownEl.innerText = "";
         }
 
-        function simulateSend(fakeText) {
+        function simulateSend(msg) {
           speaking = false;
           hasSent = true;
           silenceStart = null;
           talkingStart = null;
           stopCountdown();
-
-          statusEl.innerText = "已发送，等待下一条...";
-          logEl.innerText = `你说的是：${fakeText}`;
-
-          setTimeout(() => {
-            logEl.innerText = "";
-            statusEl.innerText = "请说话...";
-          }, 1000);
+          logEl.innerText = "Sent: " + msg;
+          statusEl.innerText = "Idle...";
+          setTimeout(() => { logEl.innerText = ""; }, 1500);
         }
 
         function checkVolume() {
@@ -136,37 +258,32 @@
           for (let i = 0; i < bufferLength; i++) {
             sum += dataArray[i];
           }
-          const average = sum / bufferLength;
-          const volume = (average / 255) * 100;
+          const volume = (sum / bufferLength) / 255 * 100;
           volumeFill.style.width = volume.toFixed(0) + "%";
-          volumeLevel.innerText = `音量: ${volume.toFixed(0)} (阈值: ${speakingThreshold})`;
+          volumeLevel.innerText = `Volume: ${volume.toFixed(0)} (Threshold: ${speakingThreshold})`;
 
           const now = Date.now();
 
           if (volume > speakingThreshold) {
-            // 检测到说话
             if (!speaking) {
               speaking = true;
               hasSent = false;
               silenceStart = null;
               talkingStart = now;
               startCountdown();
-              statusEl.innerText = "正在听...";
+              statusEl.innerText = "Listening...";
             } else {
-              silenceStart = null; // 有音量时重置静音开始时间
+              silenceStart = null;
               if (!talkingStart) talkingStart = now;
               if (now - talkingStart > maxSpeakingDuration) {
-                simulateSend("说话超时");
+                simulateSend("Message too long");
               }
             }
-          } else {
-            // 检测到静音
-            if (speaking) {
-              if (!silenceStart) {
-                silenceStart = now;
-              } else if (now - silenceStart >= silenceDelay && !hasSent) {
-                simulateSend("我要一份烤肉和泡菜汤");
-              }
+          } else if (speaking) {
+            if (!silenceStart) {
+              silenceStart = now;
+            } else if (now - silenceStart >= silenceDelay && !hasSent) {
+              simulateSend("Auto-sent after silence");
             }
           }
 
@@ -176,8 +293,8 @@
         checkVolume();
       })
       .catch(err => {
-        console.error("无法访问设备:", err);
-        statusEl.innerText = "设备访问失败";
+        console.error("Error:", err);
+        statusEl.innerText = "Device access failed";
       });
   </script>
 </body>

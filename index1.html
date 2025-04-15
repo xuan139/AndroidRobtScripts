@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>语音监听 Demo</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f0f0f0;
+      margin: 0;
+      padding: 0;
+    }
+    #container {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: #fff;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      width: 340px;
+    }
+    video {
+      width: 100%;
+      border-radius: 6px;
+    }
+    #volumeBar {
+      height: 12px;
+      background: #ddd;
+      margin-top: 10px;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    #volumeFill {
+      height: 100%;
+      width: 0%;
+      background: #28a745;
+      transition: width 0.1s;
+    }
+    #status {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #333;
+    }
+    #log, #volumeLevel, #countdown {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #555;
+    }
+    #countdown {
+      font-size: 16px;
+      color: #d00;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <video id="camera" autoplay muted></video>
+    <div id="volumeBar"><div id="volumeFill"></div></div>
+    <div id="volumeLevel">音量: 0 (阈值: 35)</div>
+    <div id="status">初始化中...</div>
+    <div id="countdown"></div>
+    <div id="log"></div>
+  </div>
+
+  <script>
+    const video = document.getElementById('camera');
+    const volumeFill = document.getElementById('volumeFill');
+    const volumeLevel = document.getElementById('volumeLevel');
+    const statusEl = document.getElementById('status');
+    const logEl = document.getElementById('log');
+    const countdownEl = document.getElementById('countdown');
+
+    let speaking = false;
+    let silenceStart = null;
+    let talkingStart = null;
+    let hasSent = false;
+    let countdownTimer = null;
+
+    const speakingThreshold = 10;
+    const silenceDelay = 5000;
+    const maxSpeakingDuration = 10000; // 10 秒
+
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      .then(stream => {
+        video.srcObject = stream;
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const sourceNode = audioCtx.createMediaStreamSource(stream);
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        sourceNode.connect(analyser);
+
+        statusEl.innerText = "请说话...";
+
+        function startCountdown() {
+          let remaining = maxSpeakingDuration / 1000;
+          countdownEl.innerText = `倒计时: ${remaining} 秒`;
+          countdownTimer = setInterval(() => {
+            remaining--;
+            countdownEl.innerText = `倒计时: ${remaining} 秒`;
+            if (remaining <= 0) {
+              clearInterval(countdownTimer);
+              simulateSend("超时自动发送");
+            }
+          }, 1000);
+        }
+
+        function stopCountdown() {
+          clearInterval(countdownTimer);
+          countdownEl.innerText = "";
+        }
+
+        function simulateSend(fakeText) {
+          speaking = false;
+          hasSent = true;
+          silenceStart = null;
+          talkingStart = null;
+          stopCountdown();
+
+          statusEl.innerText = "已发送，等待下一条...";
+          logEl.innerText = `你说的是：${fakeText}`;
+
+          setTimeout(() => {
+            logEl.innerText = "";
+            statusEl.innerText = "请说话...";
+          }, 1000);
+        }
+
+        function checkVolume() {
+          analyser.getByteFrequencyData(dataArray);
+          let sum = 0;
+          for (let i = 0; i < bufferLength; i++) {
+            sum += dataArray[i];
+          }
+          const average = sum / bufferLength;
+          const volume = (average / 255) * 100;
+          volumeFill.style.width = volume.toFixed(0) + "%";
+          volumeLevel.innerText = `音量: ${volume.toFixed(0)} (阈值: ${speakingThreshold})`;
+
+          const now = Date.now();
+
+          if (volume > speakingThreshold) {
+            // 检测到说话
+            if (!speaking) {
+              speaking = true;
+              hasSent = false;
+              silenceStart = null;
+              talkingStart = now;
+              startCountdown();
+              statusEl.innerText = "正在听...";
+            } else {
+              silenceStart = null; // 有音量时重置静音开始时间
+              if (!talkingStart) talkingStart = now;
+              if (now - talkingStart > maxSpeakingDuration) {
+                simulateSend("说话超时");
+              }
+            }
+          } else {
+            // 检测到静音
+            if (speaking) {
+              if (!silenceStart) {
+                silenceStart = now;
+              } else if (now - silenceStart >= silenceDelay && !hasSent) {
+                simulateSend("我要一份烤肉和泡菜汤");
+              }
+            }
+          }
+
+          requestAnimationFrame(checkVolume);
+        }
+
+        checkVolume();
+      })
+      .catch(err => {
+        console.error("无法访问设备:", err);
+        statusEl.innerText = "设备访问失败";
+      });
+  </script>
+</body>
+</html>
