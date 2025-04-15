@@ -1,162 +1,353 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>旅游与美食推荐</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>餐厅菜单与旅游推荐</title>
+  <!-- 引入 face-api.js -->
   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+  
   <style>
     body {
-      font-family: sans-serif;
+      font-family: "Arial", sans-serif;
       margin: 0;
       padding: 0;
+      background-image: url('https://images.unsplash.com/photo-1603351107601-ff36cae2d5e3'); /* 酷炫夜景背景 */
+      background-size: cover; /* 背景图自适应屏幕大小 */
+      background-position: center;
+      color: white; /* 白色字体让文字更加清晰 */
       display: flex;
-      flex-direction: column;
-      align-items: center;
+      justify-content: flex-start; /* 左对齐 */
     }
-    main {
-      max-width: 960px;
-      padding: 20px;
+
+    header {
+      text-align: center;
+      padding: 2rem 0 1rem;
+      color: #fff; /* 文字颜色 */
     }
-    .card {
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      padding: 15px;
-      box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+
+    h1 {
+      margin-bottom: 0.5rem;
     }
-    .card img {
-      width: 100%;
+
+    section {
+      margin-bottom: 2rem;
+      background-color: rgba(0, 0, 0, 0.5); /* 半透明背景 */
+      padding: 1rem;
       border-radius: 8px;
     }
-    #media-section {
-      margin-top: 40px;
-      text-align: center;
+
+    .container {
+      width: 50%; /* 容器宽度占屏幕的50% */
+      margin: 0 auto; /* 居中 */
+      padding-left: 10px; /* 左边距10px */
     }
-    video, canvas {
-      width: 320px;
-      height: 240px;
+
+    .menu-container,
+    .map-container {
+      margin-bottom: 1rem;
+    }
+
+    .menu-item {
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .menu-item strong {
+      font-size: 1.2rem;
+    }
+
+    .menu-item select, .menu-item span {
+      padding: 5px 10px;
+      font-size: 1rem;
+    }
+
+    #map {
+      height: 400px;
+      width: 100%;
+      min-width: 300px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    #camera-container {
+      position: fixed;
+      top: 10px; /* 左上角 */
+      left: 10px;
+      background: #f9f9f9;
       border-radius: 10px;
+      padding: 1rem;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      z-index: 999;
+      width: 320px;
     }
+
+    #camera, #overlay {
+      width: 100%;
+      height: auto;
+    }
+
     #controls {
-      margin-top: 10px;
+      margin-top: 0.5rem;
     }
-    #startRecording, #stopRecording {
-      font-size: 1.2em;
-      padding: 10px 20px;
-      margin: 0 10px;
+
+    #toggleButton {
+      position: absolute;
+      top: -35px;
+      right: 0;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.9rem;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
     }
-    @media (min-width: 768px) {
-      #media-wrapper {
-        display: flex;
-        justify-content: center;
-        gap: 20px;
-      }
+
+    .language-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 10px;
+      font-size: 14px;
+      background-color: #333;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #totalPrice {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-top: 1rem;
+      color: yellow;
     }
   </style>
+
+  <!-- 引入 Leaflet.js 和地图样式 -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
 <body>
 
-<main>
-  <h1>欢迎来到美食与旅行推荐</h1>
+  <header>
+    <h1>환영합니다! (欢迎光临！)</h1>
+    <p>맛있는 음식과 여행 추천을 즐기세요. (享受美食与旅游推荐)</p>
+  </header>
 
-  <div class="card">
-    <h2>推荐餐馆：老张牛肉面</h2>
-    <img src="https://source.unsplash.com/640x360/?noodles" alt="牛肉面" />
-    <p>招牌牛肉拉面，汤鲜肉嫩，深受本地人喜爱。</p>
+  <!-- 语言切换按钮 -->
+  <button class="language-btn" id="languageToggle">中文 메뉴로 변경</button>
+
+  <div class="container">
+    <div class="menu-container">
+      <section>
+        <h2>🍽 메뉴 (菜单)</h2>
+        <div class="menu-item" id="menu-item1">
+          <div>
+            <strong>불고기 (韩式烤肉)</strong> - 99원
+          </div>
+          <div>
+            <select id="quantity1" onchange="updateTotalPrice()">
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+            <span id="price1">99원</span>
+          </div>
+        </div>
+        <div class="menu-item" id="menu-item2">
+          <div>
+            <strong>김치찌개 (泡菜汤)</strong> - 35원
+          </div>
+          <div>
+            <select id="quantity2" onchange="updateTotalPrice()">
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+            <span id="price2">35원</span>
+          </div>
+        </div>
+        <div class="menu-item" id="menu-item3">
+          <div>
+            <strong>비빔밥 (石锅拌饭)</strong> - 45원
+          </div>
+          <div>
+            <select id="quantity3" onchange="updateTotalPrice()">
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+            <span id="price3">45원</span>
+          </div>
+        </div>
+        <div class="menu-item" id="menu-item4">
+          <div>
+            <strong>갈비 (韩式排骨)</strong> - 150원
+          </div>
+          <div>
+            <select id="quantity4" onchange="updateTotalPrice()">
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+            <span id="price4">150원</span>
+          </div>
+        </div>
+        <div id="totalPrice">총 금액: 0원</div> <!-- 总价 -->
+      </section>
+    </div>
+
+    <div class="map-container">
+      <section>
+        <h2>✈️ 여행 추천 (旅游推荐)</h2>
+        <p>서울의 다양한 명소를 방문해 보세요! (来首尔探索丰富的文化、美食与景点！)</p>
+        <ul>
+          <li>景点 1: 경복궁 (景福宫)</li>
+          <li>景点 2: 남산타워 (南山塔)</li>
+          <li>景点 3: 명동 쇼핑 거리 (明洞购物街)</li>
+          <li>美食推荐: 韩式烤肉、泡菜汤、烤鱼等</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>📍 레스토랑 위치 (餐厅位置)</h2>
+        <div id="map"></div>
+      </section>
+    </div>
   </div>
 
-  <div class="card">
-    <h2>必去景点：青山湖</h2>
-    <img src="https://source.unsplash.com/640x360/?lake" alt="青山湖" />
-    <p>湖光山色，适合散步和野餐，摄影爱好者的天堂。</p>
-  </div>
-</main>
-
-<section id="media-section">
-  <h2>人脸检测与音频录制</h2>
-  <div id="media-wrapper">
+  <!-- 摄像头和麦克风区域 -->
+  <div id="camera-container">
+    <button id="toggleButton">최소화</button>
     <video id="camera" autoplay muted playsinline></video>
     <canvas id="overlay"></canvas>
+    <div id="controls">
+      <p id="status">Status: Initializing...</p>
+      <button id="startRecording" disabled>Start Recording</button>
+      <button id="stopRecording" disabled>Stop Recording</button>
+      <audio id="audio" controls></audio>
+    </div>
   </div>
-  <p id="status">状态：等待摄像头权限...</p>
-  <div id="controls">
-    <button id="startRecording" disabled>🎙️ 开始录音</button>
-    <button id="stopRecording" disabled>🛑 停止录音</button>
-    <br /><br />
-    <audio id="audio" controls></audio>
-  </div>
-</section>
 
-<script>
-  const camera = document.getElementById('camera');
-  const overlay = document.getElementById('overlay');
-  const context = overlay.getContext('2d');
-  const status = document.getElementById('status');
-  const startButton = document.getElementById('startRecording');
-  const stopButton = document.getElementById('stopRecording');
-  const audioElement = document.getElementById('audio');
-  let mediaRecorder;
-  let audioChunks = [];
+  <script>
+    // 初始化摄像头和麦克风
+    const camera = document.getElementById('camera');
+    const overlay = document.getElementById('overlay');
+    const status = document.getElementById('status');
+    const startButton = document.getElementById('startRecording');
+    const stopButton = document.getElementById('stopRecording');
+    const audioElement = document.getElementById('audio');
+    const context = overlay.getContext('2d');
 
-  Promise.all([
-    faceapi.nets.tinyFaceDetector.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models')
-  ])
-  .then(() => navigator.mediaDevices.getUserMedia({ video: true, audio: true }))
-  .then((stream) => {
+    let mediaRecorder;
+    let audioChunks = [];
+
+    // 加载 face-api.js 模型
+    Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models')
+    ])
+    .then(() => {
+      console.log("FaceAPI model loaded.");
+      return navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    })
+    .then((stream) => {
+    console.log("Camera and microphone granted.");
     camera.srcObject = stream;
     camera.onloadedmetadata = () => {
       camera.play();
-      startFaceDetection();
     };
-  })
-  .catch(err => {
-    status.textContent = "无法访问摄像头或麦克风";
-    console.error(err);
+
+    // ✅ 始终启用按钮
+    startButton.disabled = false;
+    stopButton.disabled = false;
+    status.textContent = "Status: Ready to record";
   });
 
-  function startFaceDetection() {
-    const size = { width: camera.videoWidth, height: camera.videoHeight };
-    faceapi.matchDimensions(overlay, size);
 
-    setInterval(async () => {
-      const detections = await faceapi.detectAllFaces(camera, new faceapi.TinyFaceDetectorOptions());
-      context.clearRect(0, 0, overlay.width, overlay.height);
+    startButton.addEventListener('click', () => {
+      const audioStream = camera.srcObject;
+      mediaRecorder = new MediaRecorder(audioStream);
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunks.push(event.data);
+      };
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        audioElement.src = audioUrl;
+      };
 
-      if (detections.length > 0) {
-        status.textContent = `状态：检测到 ${detections.length} 张人脸`;
-        startButton.disabled = false;
+      mediaRecorder.start();
+      startButton.disabled = true;
+      stopButton.disabled = false;
+      status.textContent = "Status: Recording...";
+    });
+
+    stopButton.addEventListener('click', () => {
+      mediaRecorder.stop();
+      startButton.disabled = false;
+      stopButton.disabled = true;
+      status.textContent = "Status: Recording stopped.";
+    });
+
+    // 初始化地图
+    function initMap() {
+      const map = L.map('map').setView([37.5665, 126.9780], 13);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      L.marker([37.5665, 126.9780]).addTo(map)
+        .bindPopup('餐厅位置')
+        .openPopup();
+    }
+
+    initMap();
+
+    // 语言切换功能
+    let isKorean = true;
+    const languageToggle = document.getElementById('languageToggle');
+    languageToggle.addEventListener('click', () => {
+      isKorean = !isKorean;
+      if (isKorean) {
+        document.getElementById('menu-item1').innerHTML = "<strong>불고기 (韩式烤肉)</strong> - 99원";
+        document.getElementById('menu-item2').innerHTML = "<strong>김치찌개 (泡菜汤)</strong> - 35원";
+        document.getElementById('menu-item3').innerHTML = "<strong>비빔밥 (石锅拌饭)</strong> - 45원";
+        document.getElementById('menu-item4').innerHTML = "<strong>갈비 (韩式排骨)</strong> - 150원";
+        languageToggle.innerHTML = "中文 메뉴로 변경";
       } else {
-        status.textContent = "状态：未检测到人脸";
-        startButton.disabled = true;
+        document.getElementById('menu-item1').innerHTML = "<strong>韩式烤肉 (불고기)</strong> - 99元";
+        document.getElementById('menu-item2').innerHTML = "<strong>泡菜汤 (김치찌개)</strong> - 35元";
+        document.getElementById('menu-item3').innerHTML = "<strong>石锅拌饭 (비빔밥)</strong> - 45元";
+        document.getElementById('menu-item4').innerHTML = "<strong>韩式排骨 (갈비)</strong> - 150元";
+        languageToggle.innerHTML = "韩文 메뉴로 변경";
+      }
+    });
+
+    // 更新总价
+    function updateTotalPrice() {
+      const prices = [99, 35, 45, 150];
+      let total = 0;
+
+      for (let i = 1; i <= 4; i++) {
+        const quantity = document.getElementById(`quantity${i}`).value;
+        total += prices[i-1] * quantity;
       }
 
-      const resized = faceapi.resizeResults(detections, size);
-      faceapi.draw.drawDetections(overlay, resized);
-    }, 300);
-  }
-
-  startButton.addEventListener('click', () => {
-    mediaRecorder = new MediaRecorder(camera.srcObject);
-    audioChunks = [];
-    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-    mediaRecorder.onstop = () => {
-      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-      audioElement.src = URL.createObjectURL(audioBlob);
-    };
-    mediaRecorder.start();
-    startButton.disabled = true;
-    stopButton.disabled = false;
-    status.textContent = "状态：正在录音...";
-  });
-
-  stopButton.addEventListener('click', () => {
-    mediaRecorder.stop();
-    startButton.disabled = false;
-    stopButton.disabled = true;
-    status.textContent = "状态：录音已停止";
-  });
-</script>
-
+      document.getElementById('totalPrice').innerText = `总金额: ${total}원`;
+    }
+  </script>
 </body>
 </html>

@@ -3,20 +3,148 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Face Detection and Audio Recording</title>
+  <title>餐厅菜单与旅游推荐</title>
   <!-- 引入 face-api.js -->
-  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+  
+  <style>
+    body {
+      font-family: "Arial", sans-serif;
+      margin: 0;
+      padding: 0;
+      background-image: url('https://example.com/restaurant-background.jpg'); /* 替换为你的餐厅图片链接 */
+      background-size: cover; /* 背景图自适应屏幕大小 */
+      background-position: center;
+      color: white; /* 白色字体让文字更加清晰 */
+    }
+
+    header {
+      text-align: center;
+      padding: 2rem 0 1rem;
+      color: #fff; /* 文字颜色 */
+    }
+
+    h1 {
+      margin-bottom: 0.5rem;
+    }
+
+    section {
+      margin-bottom: 2rem;
+      background-color: rgba(0, 0, 0, 0.5); /* 半透明背景 */
+      padding: 1rem;
+      border-radius: 8px;
+    }
+
+    .menu-item {
+      margin-bottom: 0.5rem;
+    }
+
+    .map-container {
+      display: flex;
+      justify-content: flex-start;
+    }
+
+    #map {
+      height: 400px;
+      width: 60%;
+      min-width: 300px;
+      margin-right: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    #camera-container {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      background: #f9f9f9;
+      border-radius: 10px;
+      padding: 1rem;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      z-index: 999;
+      width: 320px;
+    }
+
+    #camera, #overlay {
+      width: 100%;
+      height: auto;
+    }
+
+    #controls {
+      margin-top: 0.5rem;
+    }
+
+    #toggleButton {
+      position: absolute;
+      top: -35px;
+      right: 0;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.9rem;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+    }
+  </style>
+
+  <!-- 引入 Leaflet.js 和地图样式 -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
 <body>
-  <h1>Face Detection and Audio Recording</h1>
-  <video id="camera" width="640" height="480" autoplay muted></video>
-  <canvas id="overlay" width="640" height="480"></canvas>
-  <p id="status">Status: Waiting for faces...</p>
-  <button id="startRecording" disabled>Start Recording</button>
-  <button id="stopRecording" disabled>Stop Recording</button>
-  <audio id="audio" controls></audio>
+
+  <header>
+    <h1>欢迎光临！</h1>
+    <p>享受美食与旅游推荐，摄像头和麦克风随时准备互动！</p>
+  </header>
+
+  <section>
+    <h2>🍽 餐厅菜单</h2>
+    <div class="menu-item">
+      <strong>韩式烤肉</strong> - ¥99
+    </div>
+    <div class="menu-item">
+      <strong>泡菜汤</strong> - ¥35
+    </div>
+    <div class="menu-item">
+      <strong>石锅拌饭</strong> - ¥45
+    </div>
+  </section>
+
+  <section>
+    <h2>✈️ 旅游推荐</h2>
+    <p>推荐访问韩国首尔，探索丰富的文化、美食与景点！</p>
+    <ul>
+      <li>景点 1: 景福宫</li>
+      <li>景点 2: 南山塔</li>
+      <li>景点 3: 明洞购物街</li>
+      <li>美食推荐: 韩式烤肉、泡菜汤、烤鱼等</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>📍 餐厅位置</h2>
+    <div class="map-container">
+      <div id="map"></div>
+    </div>
+  </section>
+
+  <!-- 摄像头和麦克风区域 -->
+  <div id="camera-container">
+    <button id="toggleButton">最小化</button>
+    <video id="camera" autoplay muted playsinline></video>
+    <canvas id="overlay"></canvas>
+    <div id="controls">
+      <p id="status">Status: Initializing...</p>
+      <button id="startRecording" disabled>Start Recording</button>
+      <button id="stopRecording" disabled>Stop Recording</button>
+      <audio id="audio" controls></audio>
+    </div>
+  </div>
 
   <script>
+    // 初始化摄像头和麦克风
     const camera = document.getElementById('camera');
     const overlay = document.getElementById('overlay');
     const status = document.getElementById('status');
@@ -30,25 +158,26 @@
 
     // 加载 face-api.js 模型
     Promise.all([
-      faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/models'),
-    ]).then(requestCameraPermission);
+      faceapi.nets.tinyFaceDetector.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models')
+    ])
+    .then(() => {
+      console.log("FaceAPI model loaded.");
+      return navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    })
+    .then((stream) => {
+      console.log("Camera and microphone granted.");
+      camera.srcObject = stream;
+      camera.onloadedmetadata = () => {
+        camera.play();
+        startFaceDetection();
+      };
+    })
+    .catch(err => {
+      console.error("Camera/microphone error:", err);
+      alert("Unable to access camera or microphone. Please allow permissions.");
+    });
 
-    function requestCameraPermission() {
-      // 主动请求用户权限
-      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-        .then((stream) => {
-          camera.srcObject = stream;
-          camera.play();
-
-          // 启动人脸检测
-          startFaceDetection();
-        })
-        .catch((err) => {
-          console.error("Error accessing camera or microphone:", err);
-          alert("Failed to access the camera or microphone. Please check permissions.");
-        });
-    }
-
+    // 启动人脸检测
     function startFaceDetection() {
       const displaySize = { width: camera.width, height: camera.height };
       faceapi.matchDimensions(overlay, displaySize);
@@ -57,42 +186,73 @@
         const detections = await faceapi.detectAllFaces(camera, new faceapi.TinyFaceDetectorOptions());
         context.clearRect(0, 0, overlay.width, overlay.height);
 
-        if (detections.length > 0) {
-          status.textContent = `Status: ${detections.length} face(s) detected`;
-          startButton.disabled = false; // 启用录音按钮
-        } else {
-          status.textContent = "Status: No faces detected";
-          startButton.disabled = true; // 禁用录音按钮
-        }
+        // if (detections.length >0) {
+        //   status.textContent = `Status: ${detections.length} face(s) detected`;
+        //   startButton.disabled = false;
+        // } else {
+        //   status.textContent = "Status: No faces detected";
+        //   startButton.disabled = true;
+        // }
 
-        const resizedDetections = faceapi.resizeResults(detections, displaySize);
-        faceapi.draw.drawDetections(overlay, resizedDetections);
-      }, 200); // 每 200 毫秒检测一次
+        status.textContent = `Status: ${detections.length} face(s) detected`;
+        startButton.disabled = false;
+
+        const resized = faceapi.resizeResults(detections, displaySize);
+        faceapi.draw.drawDetections(overlay, resized);
+      }, 200);
     }
 
     startButton.addEventListener('click', () => {
       const audioStream = camera.srcObject;
       mediaRecorder = new MediaRecorder(audioStream);
-      mediaRecorder.addEventListener('dataavailable', event => {
-        audioChunks.push(event.data);
-      });
+      audioChunks = [];
 
-      mediaRecorder.addEventListener('stop', () => {
+      mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+      mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
         const audioUrl = URL.createObjectURL(audioBlob);
         audioElement.src = audioUrl;
-        audioChunks = []; // 清空录音数据
-      });
+      };
 
       mediaRecorder.start();
       startButton.disabled = true;
       stopButton.disabled = false;
+      status.textContent = "Status: Recording...";
     });
 
     stopButton.addEventListener('click', () => {
       mediaRecorder.stop();
       startButton.disabled = false;
       stopButton.disabled = true;
+      status.textContent = "Status: Recording stopped.";
+    });
+
+    // 使用 OpenStreetMap 和 Leaflet.js 显示地图
+    function initMap() {
+      var map = L.map('map').setView([37.5665, 126.9780], 15); // 首尔的坐标
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      var marker = L.marker([37.5665, 126.9780]).addTo(map);
+      marker.bindPopup("餐厅位置").openPopup();
+    }
+
+    // 加载 Leaflet.js 地图
+    initMap();
+
+    // 最小化/展开按钮功能
+    const toggleButton = document.getElementById("toggleButton");
+    const cameraContainer = document.getElementById("camera-container");
+
+    let minimized = false;
+    toggleButton.addEventListener("click", () => {
+      minimized = !minimized;
+      camera.style.display = minimized ? "none" : "block";
+      overlay.style.display = minimized ? "none" : "block";
+      document.getElementById("controls").style.display = minimized ? "none" : "block";
+      toggleButton.textContent = minimized ? "展开" : "最小化";
     });
   </script>
 </body>
