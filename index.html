@@ -1,359 +1,184 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>餐厅菜单与旅游推荐</title>
-  <!-- 引入 face-api.js -->
-  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-  
+  <title>语音监听 Demo</title>
   <style>
     body {
-      font-family: "Arial", sans-serif;
+      font-family: sans-serif;
+      background: #f0f0f0;
       margin: 0;
       padding: 0;
-      background-image: url('https://images.unsplash.com/photo-1603351107601-ff36cae2d5e3'); /* 酷炫夜景背景 */
-      background-size: cover; /* 背景图自适应屏幕大小 */
-      background-position: center;
-      color: white; /* 白色字体让文字更加清晰 */
-      display: flex;
-      justify-content: flex-start; /* 左对齐 */
     }
-
-    header {
-      text-align: center;
-      padding: 2rem 0 1rem;
-      color: #fff; /* 文字颜色 */
-    }
-
-    h1 {
-      margin-bottom: 0.5rem;
-    }
-
-    section {
-      margin-bottom: 2rem;
-      background-color: rgba(0, 0, 0, 0.5); /* 半透明背景 */
-      padding: 1rem;
-      border-radius: 8px;
-    }
-
-    .container {
-      width: 50%; /* 容器宽度占屏幕的50% */
-      margin: 0 auto; /* 居中 */
-      padding-left: 10px; /* 左边距10px */
-    }
-
-    .menu-container,
-    .map-container {
-      margin-bottom: 1rem;
-    }
-
-    .menu-item {
-      margin-bottom: 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .menu-item strong {
-      font-size: 1.2rem;
-    }
-
-    .menu-item select, .menu-item span {
-      padding: 5px 10px;
-      font-size: 1rem;
-    }
-
-    #map {
-      height: 400px;
-      width: 100%;
-      min-width: 300px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-
-    #camera-container {
-      position: fixed;
-      top: 10px; /* 左上角 */
-      left: 10px;
-      background: #f9f9f9;
-      border-radius: 10px;
-      padding: 1rem;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-      z-index: 999;
-      width: 320px;
-    }
-
-    #camera, #overlay {
-      width: 100%;
-      height: auto;
-    }
-
-    #controls {
-      margin-top: 0.5rem;
-    }
-
-    #toggleButton {
-      position: absolute;
-      top: -35px;
-      right: 0;
-      padding: 0.25rem 0.5rem;
-      font-size: 0.9rem;
-      background: #333;
-      color: #fff;
-      border: none;
-      border-radius: 8px 8px 0 0;
-      cursor: pointer;
-    }
-
-    .language-btn {
+    #container {
       position: absolute;
       top: 10px;
-      right: 10px;
-      padding: 10px;
-      font-size: 14px;
-      background-color: #333;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
+      left: 10px;
+      background: #fff;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      width: 340px;
     }
-
-    #totalPrice {
-      font-size: 1.5rem;
+    video {
+      width: 100%;
+      border-radius: 6px;
+    }
+    #volumeBar {
+      height: 12px;
+      background: #ddd;
+      margin-top: 10px;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    #volumeFill {
+      height: 100%;
+      width: 0%;
+      background: #28a745;
+      transition: width 0.1s;
+    }
+    #status {
+      margin-top: 10px;
       font-weight: bold;
-      margin-top: 1rem;
-      color: yellow;
+      color: #333;
+    }
+    #log, #volumeLevel, #countdown {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #555;
+    }
+    #countdown {
+      font-size: 16px;
+      color: #d00;
+      font-weight: bold;
     }
   </style>
-
-  <!-- 引入 Leaflet.js 和地图样式 -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
 <body>
-
-  <header>
-    <h1>환영합니다</h1>
-    <p>맛있는 음식과 여행 추천을 즐기세요.</p>
-  </header>
-
-  <!-- 语言切换按钮 -->
-  <button class="language-btn" id="languageToggle">中文 메뉴로 변경</button>
-
-  <div class="container">
-    <div class="menu-container">
-      <section>
-        <h2>🍽 메뉴 (菜单)</h2>
-        <div class="menu-item" id="menu-item1">
-          <div>
-            <strong>불고기 (韩式烤肉)</strong> - 99원
-          </div>
-          <div>
-            <select id="quantity1" onchange="updateTotalPrice()">
-              <option value="0">0</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-            </select>
-            <span id="price1">99원</span>
-          </div>
-        </div>
-        <div class="menu-item" id="menu-item2">
-          <div>
-            <strong>김치찌개 (泡菜汤)</strong> - 35원
-          </div>
-          <div>
-            <select id="quantity2" onchange="updateTotalPrice()">
-              <option value="0">0</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-            </select>
-            <span id="price2">35원</span>
-          </div>
-        </div>
-        <div class="menu-item" id="menu-item3">
-          <div>
-            <strong>비빔밥 (石锅拌饭)</strong> - 45원
-          </div>
-          <div>
-            <select id="quantity3" onchange="updateTotalPrice()">
-              <option value="0">0</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-            </select>
-            <span id="price3">45원</span>
-          </div>
-        </div>
-        <div class="menu-item" id="menu-item4">
-          <div>
-            <strong>갈비 (韩式排骨)</strong> - 150원
-          </div>
-          <div>
-            <select id="quantity4" onchange="updateTotalPrice()">
-              <option value="0">0</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-            </select>
-            <span id="price4">150원</span>
-          </div>
-        </div>
-        <div id="totalPrice">총 금액: 0원</div> <!-- 总价 -->
-      </section>
-    </div>
-
-    <div class="map-container">
-      <section>
-        <h2>✈️ 여행 추천 (旅游推荐)</h2>
-        <p>서울의 다양한 명소를 방문해 보세요! (来首尔探索丰富的文化、美食与景点！)</p>
-        <ul>
-          <li>景点 1: 경복궁 (景福宫)</li>
-          <li>景点 2: 남산타워 (南山塔)</li>
-          <li>景点 3: 명동 쇼핑 거리 (明洞购物街)</li>
-          <li>美食推荐: 韩式烤肉、泡菜汤、烤鱼等</li>
-        </ul>
-      </section>
-
-      <section>
-        <h2>📍 레스토랑 위치 (餐厅位置)</h2>
-        <div id="map"></div>
-      </section>
-    </div>
-  </div>
-
-  <!-- 摄像头和麦克风区域 -->
-  <div id="camera-container">
-    <button id="toggleButton">최소화</button>
-    <video id="camera" autoplay muted playsinline></video>
-    <canvas id="overlay"></canvas>
-    <div id="controls">
-      <p id="status">Status: Initializing...</p>
-      <button id="startRecording" disabled>Start Recording</button>
-      <button id="stopRecording" disabled>Stop Recording</button>
-      <audio id="audio" controls></audio>
-    </div>
+  <div id="container">
+    <video id="camera" autoplay muted></video>
+    <div id="volumeBar"><div id="volumeFill"></div></div>
+    <div id="volumeLevel">音量: 0 (阈值: 35)</div>
+    <div id="status">初始化中...</div>
+    <div id="countdown"></div>
+    <div id="log"></div>
   </div>
 
   <script>
-    // 初始化摄像头和麦克风
-    const camera = document.getElementById('camera');
-    const overlay = document.getElementById('overlay');
-    const status = document.getElementById('status');
-    const startButton = document.getElementById('startRecording');
-    const stopButton = document.getElementById('stopRecording');
-    const audioElement = document.getElementById('audio');
-    const context = overlay.getContext('2d');
+    const video = document.getElementById('camera');
+    const volumeFill = document.getElementById('volumeFill');
+    const volumeLevel = document.getElementById('volumeLevel');
+    const statusEl = document.getElementById('status');
+    const logEl = document.getElementById('log');
+    const countdownEl = document.getElementById('countdown');
 
-    let mediaRecorder;
-    let audioChunks = [];
+    let speaking = false;
+    let silenceStart = null;
+    let talkingStart = null;
+    let hasSent = false;
+    let countdownTimer = null;
 
-    // 加载 face-api.js 模型
-    Promise.all([
-      faceapi.nets.tinyFaceDetector.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models')
-    ])
-    .then(() => {
-      console.log("FaceAPI model loaded.");
-      return navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    })
-    .then((stream) => {
-    console.log("Camera and microphone granted.");
-    camera.srcObject = stream;
-    camera.onloadedmetadata = () => {
-      camera.play();
-    };
+    const speakingThreshold = 10;
+    const silenceDelay = 5000;
+    const maxSpeakingDuration = 10000; // 10 秒
 
-    // ✅ 始终启用按钮
-    startButton.disabled = false;
-    stopButton.disabled = false;
-    status.textContent = "Status: Ready to record";
-  });
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      .then(stream => {
+        video.srcObject = stream;
 
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const sourceNode = audioCtx.createMediaStreamSource(stream);
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        sourceNode.connect(analyser);
 
-    startButton.addEventListener('click', () => {
-      const audioStream = camera.srcObject;
-      mediaRecorder = new MediaRecorder(audioStream);
-      mediaRecorder.ondataavailable = (event) => {
-        audioChunks.push(event.data);
-      };
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        audioElement.src = audioUrl;
-      };
+        statusEl.innerText = "请说话...";
 
-      mediaRecorder.start();
-      startButton.disabled = true;
-      stopButton.disabled = false;
-      status.textContent = "Status: Recording...";
-    });
+        function startCountdown() {
+          let remaining = maxSpeakingDuration / 1000;
+          countdownEl.innerText = `倒计时: ${remaining} 秒`;
+          countdownTimer = setInterval(() => {
+            remaining--;
+            countdownEl.innerText = `倒计时: ${remaining} 秒`;
+            if (remaining <= 0) {
+              clearInterval(countdownTimer);
+              simulateSend("超时自动发送");
+            }
+          }, 1000);
+        }
 
-    stopButton.addEventListener('click', () => {
-      mediaRecorder.stop();
-      startButton.disabled = false;
-      stopButton.disabled = true;
-      status.textContent = "Status: Recording stopped.";
-    });
+        function stopCountdown() {
+          clearInterval(countdownTimer);
+          countdownEl.innerText = "";
+        }
 
-    // 初始化地图
-    function initMap() {
-      // const map = L.map('map').setView([37.5665, 126.9780], 13);
-      const map = L.map('map').setView([25.0523, 121.5325], 13);
+        function simulateSend(fakeText) {
+          speaking = false;
+          hasSent = true;
+          silenceStart = null;
+          talkingStart = null;
+          stopCountdown();
 
+          statusEl.innerText = "已发送，等待下一条...";
+          logEl.innerText = `你说的是：${fakeText}`;
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(map);
+          setTimeout(() => {
+            logEl.innerText = "";
+            statusEl.innerText = "请说话...";
+          }, 1000);
+        }
 
-      L.marker([37.5665, 126.9780]).addTo(map)
-        .bindPopup('餐厅位置')
-        .openPopup();
+        function checkVolume() {
+          analyser.getByteFrequencyData(dataArray);
+          let sum = 0;
+          for (let i = 0; i < bufferLength; i++) {
+            sum += dataArray[i];
+          }
+          const average = sum / bufferLength;
+          const volume = (average / 255) * 100;
+          volumeFill.style.width = volume.toFixed(0) + "%";
+          volumeLevel.innerText = `音量: ${volume.toFixed(0)} (阈值: ${speakingThreshold})`;
 
-      // L.marker([25.0523, 121.5325]).addTo(map)
-      //   .bindPopup('台北市中山区')
-      //   .openPopup();
-    }
+          const now = Date.now();
 
-    initMap();
+          if (volume > speakingThreshold) {
+            // 检测到说话
+            if (!speaking) {
+              speaking = true;
+              hasSent = false;
+              silenceStart = null;
+              talkingStart = now;
+              startCountdown();
+              statusEl.innerText = "正在听...";
+            } else {
+              silenceStart = null; // 有音量时重置静音开始时间
+              if (!talkingStart) talkingStart = now;
+              if (now - talkingStart > maxSpeakingDuration) {
+                simulateSend("说话超时");
+              }
+            }
+          } else {
+            // 检测到静音
+            if (speaking) {
+              if (!silenceStart) {
+                silenceStart = now;
+              } else if (now - silenceStart >= silenceDelay && !hasSent) {
+                simulateSend("我要一份烤肉和泡菜汤");
+              }
+            }
+          }
 
-    // 语言切换功能
-    let isKorean = true;
-    const languageToggle = document.getElementById('languageToggle');
-    languageToggle.addEventListener('click', () => {
-      isKorean = !isKorean;
-      if (isKorean) {
-        document.getElementById('menu-item1').innerHTML = "<strong>불고기 (韩式烤肉)</strong> - 99원";
-        document.getElementById('menu-item2').innerHTML = "<strong>김치찌개 (泡菜汤)</strong> - 35원";
-        document.getElementById('menu-item3').innerHTML = "<strong>비빔밥 (石锅拌饭)</strong> - 45원";
-        document.getElementById('menu-item4').innerHTML = "<strong>갈비 (韩式排骨)</strong> - 150원";
-        languageToggle.innerHTML = "中文 메뉴로 변경";
-      } else {
-        document.getElementById('menu-item1').innerHTML = "<strong>韩式烤肉 (불고기)</strong> - 99元";
-        document.getElementById('menu-item2').innerHTML = "<strong>泡菜汤 (김치찌개)</strong> - 35元";
-        document.getElementById('menu-item3').innerHTML = "<strong>石锅拌饭 (비빔밥)</strong> - 45元";
-        document.getElementById('menu-item4').innerHTML = "<strong>韩式排骨 (갈비)</strong> - 150元";
-        languageToggle.innerHTML = "韩文 메뉴로 변경";
-      }
-    });
+          requestAnimationFrame(checkVolume);
+        }
 
-    // 更新总价
-    function updateTotalPrice() {
-      const prices = [99, 35, 45, 150];
-      let total = 0;
-
-      for (let i = 1; i <= 4; i++) {
-        const quantity = document.getElementById(`quantity${i}`).value;
-        total += prices[i-1] * quantity;
-      }
-
-      document.getElementById('totalPrice').innerText = `总金额: ${total}원`;
-    }
+        checkVolume();
+      })
+      .catch(err => {
+        console.error("无法访问设备:", err);
+        statusEl.innerText = "设备访问失败";
+      });
   </script>
 </body>
 </html>
