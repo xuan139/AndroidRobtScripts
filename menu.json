@@ -6,7 +6,7 @@
       "name_ja": "プルコギ",
       "description": "以酱油、糖、香油和蒜腌制后烧烤的牛肉片。",
       "price": "12000",
-      "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.jpg"
+      "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.pmg"
 
 
 
@@ -18,7 +18,7 @@
       "name_ja": "ビビンバ",
       "description": "将蔬菜、肉类和鸡蛋拌入热饭中，配以辣酱。",
       "price": "10000",
-      "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.jpg"
+      "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.pmg"
     },
     {
       "name_ko": "김치찌개",
@@ -27,7 +27,7 @@
       "name_ja": "キムチチゲ",
       "description": "以泡菜、豆腐、猪肉等材料炖煮的辣汤。",
       "price": "9000",
-      "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.jpg"
+      "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.pmg"
     },
     {
       "name_ko": "삼겹살",
@@ -36,7 +36,7 @@
       "name_ja": "サムギョプサル",
       "description": "厚切猪五花肉烤至酥香，搭配生菜和调味料食用。",
       "price": "15000",
-      "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.jpg"
+      "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.pmg"
     },
     {
       "name_ko": "잡채",
@@ -45,7 +45,7 @@
       "name_ja": "チャプチェ",
       "description": "由粉丝、牛肉和多种蔬菜炒制而成的韩式家常菜。",
       "price": "8000",
-      "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.jpg"
+      "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.pmg"
     },
     {
       "name_ko": "떡볶이",
@@ -54,7 +54,7 @@
       "name_ja": "トッポッキ",
       "description": "甜辣酱汁炒制的年糕，是深受欢迎的街头小吃。",
       "price": "7000",
-      "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.jpg"
+      "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.pmg"
     }
   ]
   
