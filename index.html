@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>한식 주문 및 여행</title>
+  <title>음성 주문 및 한국 관광</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
   <style>
@@ -70,7 +70,7 @@
 </head>
 <body>
   <div class="layout">
-    <!-- Left: Camera + Mic -->
+    <!-- 왼쪽: 카메라 + 마이크 -->
     <div class="section" id="micSection">
       <h3>음성 인식</h3>
       <video id="camera" autoplay muted></video>
@@ -79,37 +79,44 @@
       <div id="status">초기화 중...</div>
       <div id="countdown"></div>
       <div id="log"></div>
+
+      <div style="margin-top:10px;">
+        <button onclick="playLastRecording()">▶️ Play</button>
+        <button onclick="clearRecording()">🗑️ Delete</button>
+        <button onclick="sendRecording()">📤 Send</button>
+      </div>
+      <audio id="lastAudio" controls style="display:none; margin-top: 6px;"></audio>
     </div>
 
-    <!-- Center: Menu -->
+    <!-- 중앙: 메뉴 -->
     <div class="section">
       <h3>메뉴</h3>
       <div id="menuList"></div>
       <h4>장바구니</h4>
-      <div id="cartList">장바구니가 비어 있습니다</div>
-      <div id="cartTotal">총액: ₩0</div>
+      <div id="cartList">장바구니가 비었습니다</div>
+      <div id="cartTotal">합계: ₩0</div>
       <button onclick="submitOrder()">주문 제출</button>
       <div id="submittedText"></div>
     </div>
 
-    <!-- Right: Travel -->
+    <!-- 오른쪽: 관광지 -->
     <div class="section">
-      <h3>한국 관광 명소</h3>
+      <h3>한국 관광지</h3>
       <ul>
-        <li><strong>경복궁</strong> – 조선 왕조의 궁궐</li>
-        <li><strong>남산타워</strong> – 서울의 전망을 제공</li>
-        <li><strong>해운대 해변 (부산)</strong> – 도시 경관과 어우러진 아름다운 해변</li>
+        <li><strong>경복궁</strong> – 조선 시대의 왕궁</li>
+        <li><strong>남산타워</strong> – 서울 전망 제공</li>
+        <li><strong>해운대 해변 (부산)</strong> – 도시와 어우러진 해변</li>
         <li><strong>제주도</strong> – 자연과 한라산으로 유명</li>
-        <li><strong>인사동</strong> – 전통 문화와 공예의 거리</li>
+        <li><strong>인사동</strong> – 전통 문화와 공예 거리</li>
       </ul>
-      <img src="https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=4ff44d6e-1214-4713-b235-4f1265d87dd7" alt="한국 여행" width="100%" style="border-radius: 6px;" />
+      <img src="https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=4ff44d6e-1214-4713-b235-4f1265d87dd7" alt="Korea Travel" width="100%" style="border-radius: 6px;" />
     </div>
   </div>
 
-  <!-- Map -->
+  <!-- 지도 -->
   <div id="map"></div>
 
-  <!-- Leaflet Map JS -->
+  <!-- 지도 JS -->
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
   <script>
     const map = L.map('map').setView([37.5665, 126.9780], 12); // 서울 중심
@@ -119,13 +126,13 @@
     L.marker([37.5665, 126.9780]).addTo(map).bindPopup("서울 시청");
   </script>
 
-  <!-- Menu and Mic JS -->
+  <!-- 메뉴 + 마이크 + 녹음 -->
   <script>
     const menu = [
       { name: "불고기", price: 12000, quantity: 0 },
       { name: "김치찌개", price: 8000, quantity: 0 },
       { name: "비빔밥", price: 10000, quantity: 0 },
-      { name: "치킨", price: 15000, quantity: 0 },
+      { name: "후라이드 치킨", price: 15000, quantity: 0 },
     ];
     const cart = [];
 
@@ -169,8 +176,8 @@
       const list = document.getElementById("cartList");
       const total = document.getElementById("cartTotal");
       if (cart.length === 0) {
-        list.innerText = "장바구니가 비어 있습니다";
-        total.innerText = "총액: ₩0";
+        list.innerText = "장바구니가 비었습니다";
+        total.innerText = "합계: ₩0";
         return;
       }
       let html = "";
@@ -180,7 +187,7 @@
         sum += i.price * i.quantity;
       });
       list.innerHTML = html;
-      total.innerText = `총액: ₩${sum}`;
+      total.innerText = `합계: ₩${sum}`;
     }
 
     function submitOrder() {
@@ -192,13 +199,18 @@
 
     renderMenu();
 
-    // ===== Microphone & Volume Logic =====
+    // 마이크 및 녹음
     const video = document.getElementById("camera");
     const volumeFill = document.getElementById("volumeFill");
     const volumeLevel = document.getElementById("volumeLevel");
     const statusEl = document.getElementById("status");
     const logEl = document.getElementById("log");
     const countdownEl = document.getElementById("countdown");
+
+    let mediaRecorder;
+    let audioChunks = [];
+    let lastAudioBlob = null;
+    let waitingForUser = false;
 
     let speaking = false;
     let silenceStart = null;
@@ -222,6 +234,17 @@
         source.connect(analyser);
         statusEl.innerText = "듣는 중...";
 
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        mediaRecorder.onstop = () => {
+          lastAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          audioChunks = [];
+          waitingForUser = true;
+          // statusEl.innerText = "녹음 완료, 확인 후 전송하거나 삭제하세요.";
+          statusEl.innerText = "Recording complete. Please listen, then send or delete.";
+
+        };
+
         function startCountdown() {
           let left = maxSpeakingDuration / 1000;
           countdownEl.innerText = `남은 시간: ${left}s`;
@@ -230,7 +253,7 @@
             countdownEl.innerText = `남은 시간: ${left}s`;
             if (left <= 0) {
               clearInterval(countdownTimer);
-              simulateSend("시간 초과로 자동 전송됨");
+              simulateSend("시간 초과 자동 전송");
             }
           }, 1000);
         }
@@ -241,14 +264,15 @@
         }
 
         function simulateSend(msg) {
+          if (mediaRecorder && mediaRecorder.state === "recording") {
+            mediaRecorder.stop();
+          }
           speaking = false;
           hasSent = true;
           silenceStart = null;
           talkingStart = null;
           stopCountdown();
-          logEl.innerText = "전송됨: " + msg;
-          statusEl.innerText = "대기 중...";
-          setTimeout(() => { logEl.innerText = ""; }, 1500);
+          logEl.innerText = "녹음 완료됨: " + msg;
         }
 
         function checkVolume() {
@@ -259,18 +283,23 @@
           }
           const volume = (sum / bufferLength) / 255 * 100;
           volumeFill.style.width = volume.toFixed(0) + "%";
-          volumeLevel.innerText = `볼륨: ${volume.toFixed(0)} (임계값: ${speakingThreshold})`;
+          // volumeLevel.innerText = `볼륨: ${volume.toFixed(0)} (임계값: ${speakingThreshold})`;
+          volumeLevel.innerText = `Volume: ${volume.toFixed(0)} (Threshold: ${speakingThreshold})`;
 
           const now = Date.now();
 
           if (volume > speakingThreshold) {
-            if (!speaking) {
+            if (!speaking && !waitingForUser) {
               speaking = true;
               hasSent = false;
               silenceStart = null;
               talkingStart = now;
               startCountdown();
               statusEl.innerText = "듣는 중...";
+              if (mediaRecorder && mediaRecorder.state !== "recording") {
+                audioChunks = [];
+                mediaRecorder.start();
+              }
             } else {
               silenceStart = null;
               if (!talkingStart) talkingStart = now;
@@ -282,7 +311,7 @@
             if (!silenceStart) {
               silenceStart = now;
             } else if (now - silenceStart >= silenceDelay && !hasSent) {
-              simulateSend("무음 후 자동 전송됨");
+              simulateSend("정지 후 자동 전송됨");
             }
           }
 
@@ -295,6 +324,39 @@
         console.error("Error:", err);
         statusEl.innerText = "장치 접근 실패";
       });
+
+    function playLastRecording() {
+      if (lastAudioBlob) {
+        const audio = document.getElementById("lastAudio");
+        audio.src = URL.createObjectURL(lastAudioBlob);
+        audio.style.display = "block";
+        audio.play();
+      } else {
+        // alert("재생할 녹음이 없습니다.");
+        statusEl.innerText = "재생할 녹음이 없습니다.";
+      }
+    }
+
+    function clearRecording() {
+      lastAudioBlob = null;
+      waitingForUser = false;
+      document.getElementById("lastAudio").style.display = "none";
+      logEl.innerText = "녹음이 삭제되었습니다.";
+      statusEl.innerText = "대기 중...";
+    }
+
+    function sendRecording() {
+      if (!lastAudioBlob) {
+        // alert("전송할 녹음이 없습니다.");
+        statusEl.innerText = "sent...";
+        return;
+      }
+      logEl.innerText = "녹음이 전송되었습니다.";
+      statusEl.innerText = "전송 완료, 대기 중...";
+      document.getElementById("lastAudio").style.display = "none";
+      lastAudioBlob = null;
+      waitingForUser = false;
+    }
   </script>
 </body>
 </html>
