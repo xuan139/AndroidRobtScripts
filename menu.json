@@ -4,7 +4,7 @@
       "name_en": "Bulgogi",
       "name_zh": "韩式烤牛肉",
       "name_ja": "プルコギ",
-      "description": "以酱油、糖、香油和蒜腌制后烧烤的牛肉片。",
+      "description": "",
       "price": "12000",
       "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.png"
 
@@ -16,7 +16,7 @@
       "name_en": "Bibimbap",
       "name_zh": "石锅拌饭",
       "name_ja": "ビビンバ",
-      "description": "将蔬菜、肉类和鸡蛋拌入热饭中，配以辣酱。",
+      "description": "",
       "price": "10000",
       "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.png"
     },
@@ -25,7 +25,7 @@
       "name_en": "Kimchi Stew",
       "name_zh": "泡菜锅",
       "name_ja": "キムチチゲ",
-      "description": "以泡菜、豆腐、猪肉等材料炖煮的辣汤。",
+      "description": "",
       "price": "9000",
       "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.png"
     },
@@ -34,7 +34,7 @@
       "name_en": "Samgyeopsal",
       "name_zh": "烤五花肉",
       "name_ja": "サムギョプサル",
-      "description": "厚切猪五花肉烤至酥香，搭配生菜和调味料食用。",
+      "description": "",
       "price": "15000",
       "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.png"
     },
@@ -43,7 +43,7 @@
       "name_en": "Japchae",
       "name_zh": "韩式杂菜粉丝",
       "name_ja": "チャプチェ",
-      "description": "由粉丝、牛肉和多种蔬菜炒制而成的韩式家常菜。",
+      "description": "",
       "price": "8000",
       "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.png"
     },
@@ -52,7 +52,7 @@
       "name_en": "Tteokbokki",
       "name_zh": "辣炒年糕",
       "name_ja": "トッポッキ",
-      "description": "甜辣酱汁炒制的年糕，是深受欢迎的街头小吃。",
+      "description": "",
       "price": "7000",
       "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.png"
     }
