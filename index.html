@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>Korean Food Ordering & Travel</title>
+  <title>한식 주문 및 여행</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
   <style>
@@ -72,37 +72,37 @@
   <div class="layout">
     <!-- Left: Camera + Mic -->
     <div class="section" id="micSection">
-      <h3>Voice Recognition</h3>
+      <h3>음성 인식</h3>
       <video id="camera" autoplay muted></video>
       <div id="volumeBar"><div id="volumeFill"></div></div>
-      <div id="volumeLevel">Volume: 0 (Threshold: 10)</div>
-      <div id="status">Initializing...</div>
+      <div id="volumeLevel">볼륨: 0 (임계값: 10)</div>
+      <div id="status">초기화 중...</div>
       <div id="countdown"></div>
       <div id="log"></div>
     </div>
 
     <!-- Center: Menu -->
     <div class="section">
-      <h3>Menu</h3>
+      <h3>메뉴</h3>
       <div id="menuList"></div>
-      <h4>Cart</h4>
-      <div id="cartList">Cart is empty</div>
-      <div id="cartTotal">Total: ₩0</div>
-      <button onclick="submitOrder()">Submit Order</button>
+      <h4>장바구니</h4>
+      <div id="cartList">장바구니가 비어 있습니다</div>
+      <div id="cartTotal">총액: ₩0</div>
+      <button onclick="submitOrder()">주문 제출</button>
       <div id="submittedText"></div>
     </div>
 
     <!-- Right: Travel -->
     <div class="section">
-      <h3>Korean Tourist Attractions</h3>
+      <h3>한국 관광 명소</h3>
       <ul>
-        <li><strong>Gyeongbokgung Palace</strong> – A royal palace of the Joseon dynasty</li>
-        <li><strong>Namsan Tower</strong> – Offers panoramic views of Seoul</li>
-        <li><strong>Haeundae Beach (Busan)</strong> – Beautiful beach with urban scenery</li>
-        <li><strong>Jeju Island</strong> – Known for its nature and Hallasan mountain</li>
-        <li><strong>Insadong</strong> – Street for traditional Korean culture and crafts</li>
+        <li><strong>경복궁</strong> – 조선 왕조의 궁궐</li>
+        <li><strong>남산타워</strong> – 서울의 전망을 제공</li>
+        <li><strong>해운대 해변 (부산)</strong> – 도시 경관과 어우러진 아름다운 해변</li>
+        <li><strong>제주도</strong> – 자연과 한라산으로 유명</li>
+        <li><strong>인사동</strong> – 전통 문화와 공예의 거리</li>
       </ul>
-      <img src="https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=4ff44d6e-1214-4713-b235-4f1265d87dd7" alt="Korea Travel" width="100%" style="border-radius: 6px;" />
+      <img src="https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=4ff44d6e-1214-4713-b235-4f1265d87dd7" alt="한국 여행" width="100%" style="border-radius: 6px;" />
     </div>
   </div>
 
@@ -112,21 +112,20 @@
   <!-- Leaflet Map JS -->
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
   <script>
-    const map = L.map('map').setView([37.5665, 126.9780], 12); // Seoul center
+    const map = L.map('map').setView([37.5665, 126.9780], 12); // 서울 중심
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap'
     }).addTo(map);
-    L.marker([37.5665, 126.9780]).addTo(map).bindPopup("Seoul City Hall");
+    L.marker([37.5665, 126.9780]).addTo(map).bindPopup("서울 시청");
   </script>
 
   <!-- Menu and Mic JS -->
   <script>
-    // ===== Menu Logic =====
     const menu = [
-      { name: "Bulgogi", price: 12000, quantity: 0 },
-      { name: "Kimchi Stew", price: 8000, quantity: 0 },
-      { name: "Bibimbap", price: 10000, quantity: 0 },
-      { name: "Fried Chicken", price: 15000, quantity: 0 },
+      { name: "불고기", price: 12000, quantity: 0 },
+      { name: "김치찌개", price: 8000, quantity: 0 },
+      { name: "비빔밥", price: 10000, quantity: 0 },
+      { name: "치킨", price: 15000, quantity: 0 },
     ];
     const cart = [];
 
@@ -141,7 +140,7 @@
           <button onclick="changeQuantity(${i}, -1)">－</button>
           ${item.quantity}
           <button onclick="changeQuantity(${i}, 1)">＋</button>
-          <button onclick="addToCart(${i})">Add</button>
+          <button onclick="addToCart(${i})">추가</button>
         `;
         menuList.appendChild(el);
       });
@@ -170,8 +169,8 @@
       const list = document.getElementById("cartList");
       const total = document.getElementById("cartTotal");
       if (cart.length === 0) {
-        list.innerText = "Cart is empty";
-        total.innerText = "Total: ₩0";
+        list.innerText = "장바구니가 비어 있습니다";
+        total.innerText = "총액: ₩0";
         return;
       }
       let html = "";
@@ -181,12 +180,12 @@
         sum += i.price * i.quantity;
       });
       list.innerHTML = html;
-      total.innerText = `Total: ₩${sum}`;
+      total.innerText = `총액: ₩${sum}`;
     }
 
     function submitOrder() {
       if (cart.length === 0) return;
-      document.getElementById("submittedText").innerText = "Order has been submitted!";
+      document.getElementById("submittedText").innerText = "주문이 제출되었습니다!";
       cart.length = 0;
       updateCart();
     }
@@ -221,17 +220,17 @@
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
         source.connect(analyser);
-        statusEl.innerText = "Listening...";
+        statusEl.innerText = "듣는 중...";
 
         function startCountdown() {
           let left = maxSpeakingDuration / 1000;
-          countdownEl.innerText = `Time left: ${left}s`;
+          countdownEl.innerText = `남은 시간: ${left}s`;
           countdownTimer = setInterval(() => {
             left--;
-            countdownEl.innerText = `Time left: ${left}s`;
+            countdownEl.innerText = `남은 시간: ${left}s`;
             if (left <= 0) {
               clearInterval(countdownTimer);
-              simulateSend("Auto-sent due to timeout");
+              simulateSend("시간 초과로 자동 전송됨");
             }
           }, 1000);
         }
@@ -247,8 +246,8 @@
           silenceStart = null;
           talkingStart = null;
           stopCountdown();
-          logEl.innerText = "Sent: " + msg;
-          statusEl.innerText = "Idle...";
+          logEl.innerText = "전송됨: " + msg;
+          statusEl.innerText = "대기 중...";
           setTimeout(() => { logEl.innerText = ""; }, 1500);
         }
 
@@ -260,7 +259,7 @@
           }
           const volume = (sum / bufferLength) / 255 * 100;
           volumeFill.style.width = volume.toFixed(0) + "%";
-          volumeLevel.innerText = `Volume: ${volume.toFixed(0)} (Threshold: ${speakingThreshold})`;
+          volumeLevel.innerText = `볼륨: ${volume.toFixed(0)} (임계값: ${speakingThreshold})`;
 
           const now = Date.now();
 
@@ -271,19 +270,19 @@
               silenceStart = null;
               talkingStart = now;
               startCountdown();
-              statusEl.innerText = "Listening...";
+              statusEl.innerText = "듣는 중...";
             } else {
               silenceStart = null;
               if (!talkingStart) talkingStart = now;
               if (now - talkingStart > maxSpeakingDuration) {
-                simulateSend("Message too long");
+                simulateSend("메시지가 너무 깁니다");
               }
             }
           } else if (speaking) {
             if (!silenceStart) {
               silenceStart = now;
             } else if (now - silenceStart >= silenceDelay && !hasSent) {
-              simulateSend("Auto-sent after silence");
+              simulateSend("무음 후 자동 전송됨");
             }
           }
 
@@ -294,7 +293,7 @@
       })
       .catch(err => {
         console.error("Error:", err);
-        statusEl.innerText = "Device access failed";
+        statusEl.innerText = "장치 접근 실패";
       });
   </script>
 </body>
