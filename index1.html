@@ -1,29 +1,41 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>语音监听 Demo</title>
+  <meta charset="UTF-8" />
+  <title>Voice Chat with Avatar</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
   <style>
     body {
+      margin: 0;
       font-family: sans-serif;
       background: #f0f0f0;
-      margin: 0;
-      padding: 0;
     }
-    #container {
-      position: absolute;
-      top: 10px;
-      left: 10px;
+
+    .layout {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      padding: 10px;
+    }
+
+    .section {
       background: #fff;
-      padding: 16px;
+      padding: 12px;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      width: 340px;
+      margin: 10px 0;
     }
-    video {
-      width: 100%;
-      border-radius: 6px;
+
+    .row {
+      display: flex;
+      justify-content: space-between;
     }
+
+    .col {
+      width: 48%;
+    }
+
     #volumeBar {
       height: 12px;
       background: #ddd;
@@ -31,154 +43,295 @@
       border-radius: 5px;
       overflow: hidden;
     }
+
     #volumeFill {
       height: 100%;
       width: 0%;
       background: #28a745;
       transition: width 0.1s;
     }
-    #status {
-      margin-top: 10px;
-      font-weight: bold;
-      color: #333;
-    }
-    #log, #volumeLevel, #countdown {
-      margin-top: 8px;
-      font-size: 14px;
-      color: #555;
-    }
+
     #countdown {
-      font-size: 16px;
-      color: #d00;
       font-weight: bold;
+      color: red;
     }
+
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 2px solid #28a745;
+      object-fit: cover;
+      position: absolute;
+      top: 50px;
+      left: 100px;
+      animation: talkAnimation 1s infinite alternate;
+    }
+
+    @keyframes talkAnimation {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.2);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .chatbox {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+    }
+
+    .messages {
+      flex-grow: 1;
+      padding: 10px;
+      margin-top: 60px;
+      overflow-y: auto;
+    }
+
+    .messages div {
+      margin-bottom: 10px;
+    }
+
+    .message-user {
+      background: #f0f8ff;
+      padding: 5px;
+      border-radius: 8px;
+      text-align: left;
+    }
+
+    .message-system {
+      background: #f8f8f8;
+      padding: 5px;
+      border-radius: 8px;
+      text-align: right;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+
+    button {
+      padding: 8px 12px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background-color: #dcdcdc;
+    }
+
+    #map {
+      height: 300px;
+      margin: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    /* Layout styles */
+    .layout > .row:first-child {
+      margin-bottom: 20px;
+    }
+
+    /* Adjust the first column to 25% width */
+    .row .col:first-child {
+      width: 25%;
+    }
+
+    /* Adjust the second column to 75% width */
+    .row .col:last-child {
+      width: 75%;
+    }
+
   </style>
 </head>
 <body>
-  <div id="container">
-    <video id="camera" autoplay muted></video>
-    <div id="volumeBar"><div id="volumeFill"></div></div>
-    <div id="volumeLevel">音量: 0 (阈值: 35)</div>
-    <div id="status">初始化中...</div>
-    <div id="countdown"></div>
-    <div id="log"></div>
+  <div class="layout">
+    <!-- First Row: Left - Mic, Right - Menu -->
+    <div class="row">
+      <div class="col" id="micSection">
+        <h3>Talk to me</h3>
+        <img src="https://cdn-icons-png.flaticon.com/512/2922/2922561.png" alt="Avatar" class="avatar" />
+        <video id="camera" autoplay muted></video>
+        <div id="volumeBar"><div id="volumeFill"></div></div>
+        <div id="volumeLevel">Volume: 0 (Threshold: 10)</div>
+        <div id="status">Initializing...</div>
+        <div id="countdown"></div>
+        <div id="log"></div>
+      </div>
+      
+      <!-- Right: Menu -->
+      <div class="col">
+        <h3>Menu</h3>
+        <ul>
+          <li><a href="#">Appetizers</a></li>
+          <li><a href="#">Main Dishes</a></li>
+          <li><a href="#">Desserts</a></li>
+          <li><a href="#">Beverages</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Second Row: Left - Travel Info, Right - Map -->
+    <div class="row">
+      <!-- Left: Travel Information -->
+      <div class="col">
+        <h3>Korean Tourist Attractions</h3>
+        <ul>
+          <li><strong>Gyeongbokgung Palace</strong> – A royal palace of the Joseon dynasty</li>
+          <li><strong>Namsan Tower</strong> – Offers panoramic views of Seoul</li>
+          <li><strong>Haeundae Beach (Busan)</strong> – Beautiful beach with urban scenery</li>
+          <li><strong>Jeju Island</strong> – Known for its nature and Hallasan mountain</li>
+          <li><strong>Insadong</strong> – Street for traditional Korean culture and crafts</li>
+        </ul>
+      </div>
+
+      <!-- Right: Map -->
+      <div class="col">
+        <div id="map"></div>
+      </div>
+    </div>
   </div>
 
+  <!-- Leaflet Map JS -->
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
   <script>
-    const video = document.getElementById('camera');
-    const volumeFill = document.getElementById('volumeFill');
-    const volumeLevel = document.getElementById('volumeLevel');
-    const statusEl = document.getElementById('status');
-    const logEl = document.getElementById('log');
-    const countdownEl = document.getElementById('countdown');
+    const map = L.map('map').setView([37.5665, 126.9780], 12); // Seoul center
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+    L.marker([37.5665, 126.9780]).addTo(map).bindPopup("Seoul City Hall");
+  </script>
 
-    let speaking = false;
-    let silenceStart = null;
-    let talkingStart = null;
-    let hasSent = false;
-    let countdownTimer = null;
+  <script>
+    const messageContainer = document.getElementById("log");
+    let isRecording = false;
+    let recordedMessage = '';
+    let lastSpeechTime = 0;
+    let silenceThreshold = 2000; // Time before auto-sending (2 seconds)
+    let audioContext, analyser, microphone, javascriptNode;
+    let speechDuration = 0; // Record speech duration for validation
+    let isMessageReady = false;
 
-    const speakingThreshold = 10;
-    const silenceDelay = 5000;
-    const maxSpeakingDuration = 10000; // 10 秒
+    // Start recording and detect sound
+    function startRecording() {
+      isRecording = true;
+      updateStatus("Listening...");
+      lastSpeechTime = Date.now();
 
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then(stream => {
-        video.srcObject = stream;
+      // Simulate volume detection
+      initializeAudioProcessing();
+    }
 
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const sourceNode = audioCtx.createMediaStreamSource(stream);
-        const analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 256;
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-        sourceNode.connect(analyser);
+    function initializeAudioProcessing() {
+      if (!navigator.mediaDevices) {
+        console.error("Your browser does not support media devices.");
+        return;
+      }
 
-        statusEl.innerText = "请说话...";
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          analyser = audioContext.createAnalyser();
+          microphone = audioContext.createMediaStreamSource(stream);
+          javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
 
-        function startCountdown() {
-          let remaining = maxSpeakingDuration / 1000;
-          countdownEl.innerText = `倒计时: ${remaining} 秒`;
-          countdownTimer = setInterval(() => {
-            remaining--;
-            countdownEl.innerText = `倒计时: ${remaining} 秒`;
-            if (remaining <= 0) {
-              clearInterval(countdownTimer);
-              simulateSend("超时自动发送");
+          microphone.connect(analyser);
+          analyser.connect(javascriptNode);
+          javascriptNode.connect(audioContext.destination);
+
+          javascriptNode.onaudioprocess = function () {
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyser.getByteFrequencyData(dataArray);
+
+            let sum = 0;
+            for (let i = 0; i < bufferLength; i++) {
+              sum += dataArray[i];
             }
-          }, 1000);
-        }
 
-        function stopCountdown() {
-          clearInterval(countdownTimer);
-          countdownEl.innerText = "";
-        }
-
-        function simulateSend(fakeText) {
-          speaking = false;
-          hasSent = true;
-          silenceStart = null;
-          talkingStart = null;
-          stopCountdown();
-
-          statusEl.innerText = "已发送，等待下一条...";
-          logEl.innerText = `你说的是：${fakeText}`;
-
-          setTimeout(() => {
-            logEl.innerText = "";
-            statusEl.innerText = "请说话...";
-          }, 1000);
-        }
-
-        function checkVolume() {
-          analyser.getByteFrequencyData(dataArray);
-          let sum = 0;
-          for (let i = 0; i < bufferLength; i++) {
-            sum += dataArray[i];
-          }
-          const average = sum / bufferLength;
-          const volume = (average / 255) * 100;
-          volumeFill.style.width = volume.toFixed(0) + "%";
-          volumeLevel.innerText = `音量: ${volume.toFixed(0)} (阈值: ${speakingThreshold})`;
-
-          const now = Date.now();
-
-          if (volume > speakingThreshold) {
-            // 检测到说话
-            if (!speaking) {
-              speaking = true;
-              hasSent = false;
-              silenceStart = null;
-              talkingStart = now;
-              startCountdown();
-              statusEl.innerText = "正在听...";
+            const average = sum / bufferLength;
+            if (average > 10) { // If the sound is above threshold
+              lastSpeechTime = Date.now();
+              updateVolumeBar(average);
+              if (speechDuration < 1) {
+                speechDuration += 0.1; // Incrementing speech duration
+              }
             } else {
-              silenceStart = null; // 有音量时重置静音开始时间
-              if (!talkingStart) talkingStart = now;
-              if (now - talkingStart > maxSpeakingDuration) {
-                simulateSend("说话超时");
-              }
+              updateVolumeBar(average);
             }
-          } else {
-            // 检测到静音
-            if (speaking) {
-              if (!silenceStart) {
-                silenceStart = now;
-              } else if (now - silenceStart >= silenceDelay && !hasSent) {
-                simulateSend("我要一份烤肉和泡菜汤");
-              }
+
+            if (Date.now() - lastSpeechTime > silenceThreshold && speechDuration > 1) {
+              sendMessage();
             }
-          }
+          };
+        })
+        .catch(error => console.error("Error accessing microphone: ", error));
+    }
 
-          requestAnimationFrame(checkVolume);
-        }
+    // Update volume bar to reflect audio input
+    function updateVolumeBar(volume) {
+      const volumeFill = document.getElementById("volumeFill");
+      const volumeLevel = document.getElementById("volumeLevel");
+      const percentage = Math.min(100, volume); // Cap at 100% max
+      volumeFill.style.width = percentage + "%";
+      volumeLevel.innerText = `Volume: ${Math.round(volume)} (Threshold: 10)`;
+    }
 
-        checkVolume();
-      })
-      .catch(err => {
-        console.error("无法访问设备:", err);
-        statusEl.innerText = "设备访问失败";
-      });
+    // Send the recorded message
+    function sendMessage() {
+      if (speechDuration > 1) {
+        isMessageReady = true;
+        updateStatus("Sending...");
+        setTimeout(() => {
+          clearMessages(); // Clear previous messages
+          addMessage("Message Sent", "system");
+          resetRecording();
+        }, 1000);
+      }
+    }
+
+    // Clear messages before adding new one
+    function clearMessages() {
+      messageContainer.innerHTML = '';
+    }
+
+    // Reset recording state
+    function resetRecording() {
+      speechDuration = 0;
+      isMessageReady = false;
+      updateStatus("Listening...");
+    }
+
+    // Update status (Listening, Sent, Sending, etc.)
+    function updateStatus(statusText) {
+      document.getElementById("status").innerText = statusText;
+    }
+
+    // Add a new message to the log
+    function addMessage(content, sender) {
+      const msgDiv = document.createElement("div");
+      msgDiv.className = sender === "user" ? "message-user" : "message-system";
+      msgDiv.innerText = content;
+      messageContainer.appendChild(msgDiv);
+      messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+
+    // Initialize with a welcome message
+    addMessage("Welcome! Start speaking.", "system");
+
+    // Start the recording immediately on page load
+    startRecording();
   </script>
 </body>
 </html>
