@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>음성 주문 및 한국 관광</title>
+  <title>Voice Chat with Avatar</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
   <style>
@@ -14,7 +14,8 @@
 
     .layout {
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+      height: 100vh;
       padding: 10px;
     }
 
@@ -23,13 +24,16 @@
       padding: 12px;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      width: 32%;
-      box-sizing: border-box;
+      margin: 10px 0;
     }
 
-    video {
-      width: 100%;
-      border-radius: 6px;
+    .row {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .col {
+      width: 48%;
     }
 
     #volumeBar {
@@ -52,12 +56,79 @@
       color: red;
     }
 
-    #menuList .dish {
+    .avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 2px solid #28a745;
+      object-fit: cover;
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      animation: talkAnimation 1s infinite alternate;
+    }
+
+    @keyframes talkAnimation {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.2);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .chatbox {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+    }
+
+    .messages {
+      flex-grow: 1;
+      padding: 10px;
+      margin-top: 60px;
+      overflow-y: auto;
+    }
+
+    .messages div {
       margin-bottom: 10px;
     }
 
+    .message-user {
+      background: #f0f8ff;
+      padding: 5px;
+      border-radius: 8px;
+      text-align: left;
+    }
+
+    .message-system {
+      background: #f8f8f8;
+      padding: 5px;
+      border-radius: 8px;
+      text-align: right;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+
     button {
-      margin: 4px 4px 4px 0;
+      padding: 8px 12px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background-color: #dcdcdc;
     }
 
     #map {
@@ -66,297 +137,201 @@
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
+
+    /* Layout styles */
+    .layout > .row:first-child {
+      margin-bottom: 20px;
+    }
+
+    /* Adjust the first column to 25% width */
+    .row .col:first-child {
+      width: 25%;
+    }
+
+    /* Adjust the second column to 75% width */
+    .row .col:last-child {
+      width: 75%;
+    }
+
   </style>
 </head>
 <body>
   <div class="layout">
-    <!-- 왼쪽: 카메라 + 마이크 -->
-    <div class="section" id="micSection">
-      <h3>음성 인식</h3>
-      <video id="camera" autoplay muted></video>
-      <div id="volumeBar"><div id="volumeFill"></div></div>
-      <div id="volumeLevel">볼륨: 0 (임계값: 10)</div>
-      <div id="status">초기화 중...</div>
-      <div id="countdown"></div>
-      <div id="log"></div>
-
-      <div style="margin-top:10px;">
-        <button onclick="playLastRecording()">▶️ Play</button>
-        <button onclick="clearRecording()">🗑️ SpeakAgain</button>
-        <button onclick="sendRecording()">📤 Send</button>
+    <!-- First Row: Left - Mic, Right - Menu -->
+    <div class="row">
+      <div class="col" id="micSection">
+        <h3>Voice Recognition</h3>
+        <img src="https://cdn-icons-png.flaticon.com/512/2922/2922561.png" alt="Avatar" class="avatar" />
+        <video id="camera" autoplay muted></video>
+        <div id="volumeBar"><div id="volumeFill"></div></div>
+        <div id="volumeLevel">Volume: 0 (Threshold: 10)</div>
+        <div id="status">Initializing...</div>
+        <div id="countdown"></div>
+        <div id="log"></div>
       </div>
-      <audio id="lastAudio" controls style="display:none; margin-top: 6px;"></audio>
+      
+      <!-- Right: Menu -->
+      <div class="col">
+        <h3>Menu</h3>
+        <ul>
+          <li><a href="#">Appetizers</a></li>
+          <li><a href="#">Main Dishes</a></li>
+          <li><a href="#">Desserts</a></li>
+          <li><a href="#">Beverages</a></li>
+        </ul>
+      </div>
     </div>
 
-    <!-- 중앙: 메뉴 -->
-    <div class="section">
-      <h3>메뉴</h3>
-      <div id="menuList"></div>
-      <h4>장바구니</h4>
-      <div id="cartList">장바구니가 비었습니다</div>
-      <div id="cartTotal">합계: ₩0</div>
-      <button onclick="submitOrder()">주문 제출</button>
-      <div id="submittedText"></div>
-    </div>
+    <!-- Second Row: Left - Travel Info, Right - Map -->
+    <div class="row">
+      <!-- Left: Travel Information -->
+      <div class="col">
+        <h3>Korean Tourist Attractions</h3>
+        <ul>
+          <li><strong>Gyeongbokgung Palace</strong> – A royal palace of the Joseon dynasty</li>
+          <li><strong>Namsan Tower</strong> – Offers panoramic views of Seoul</li>
+          <li><strong>Haeundae Beach (Busan)</strong> – Beautiful beach with urban scenery</li>
+          <li><strong>Jeju Island</strong> – Known for its nature and Hallasan mountain</li>
+          <li><strong>Insadong</strong> – Street for traditional Korean culture and crafts</li>
+        </ul>
+      </div>
 
-    <!-- 오른쪽: 관광지 -->
-    <div class="section">
-      <h3>한국 관광지</h3>
-      <ul>
-        <li><strong>경복궁</strong> – 조선 시대의 왕궁</li>
-        <li><strong>남산타워</strong> – 서울 전망 제공</li>
-        <li><strong>해운대 해변 (부산)</strong> – 도시와 어우러진 해변</li>
-        <li><strong>제주도</strong> – 자연과 한라산으로 유명</li>
-        <li><strong>인사동</strong> – 전통 문화와 공예 거리</li>
-      </ul>
-      <img src="https://english.visitkorea.or.kr/public/images/2024/11/22/c03e76c0f2cc41a6b47502bda4df5cb4.jpeg" alt="Korea Travel" width="100%" style="border-radius: 6px;" />
+      <!-- Right: Map -->
+      <div class="col">
+        <div id="map"></div>
+      </div>
     </div>
   </div>
 
-  <!-- 지도 -->
-  <div id="map"></div>
-
-  <!-- 지도 JS -->
+  <!-- Leaflet Map JS -->
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
   <script>
-    const map = L.map('map').setView([37.5665, 126.9780], 12); // 서울 중심
+    const map = L.map('map').setView([37.5665, 126.9780], 12); // Seoul center
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap'
     }).addTo(map);
-    L.marker([37.5665, 126.9780]).addTo(map).bindPopup("서울 시청");
+    L.marker([37.5665, 126.9780]).addTo(map).bindPopup("Seoul City Hall");
   </script>
 
-  <!-- 메뉴 + 마이크 + 녹음 -->
   <script>
-    const menu = [
-      { name: "불고기", price: 12000, quantity: 0 },
-      { name: "김치찌개", price: 8000, quantity: 0 },
-      { name: "비빔밥", price: 10000, quantity: 0 },
-      { name: "후라이드 치킨", price: 15000, quantity: 0 },
-    ];
-    const cart = [];
+    const messageContainer = document.getElementById("log");
+    let isRecording = false;
+    let recordedMessage = '';
+    let lastSpeechTime = 0;
+    let silenceThreshold = 2000; // Time before auto-sending (2 seconds)
+    let audioContext, analyser, microphone, javascriptNode;
+    let speechDuration = 0; // Record speech duration for validation
+    let isMessageReady = false;
 
-    function renderMenu() {
-      const menuList = document.getElementById("menuList");
-      menuList.innerHTML = "";
-      menu.forEach((item, i) => {
-        const el = document.createElement("div");
-        el.className = "dish";
-        el.innerHTML = `
-          <div><strong>${item.name}</strong> – ₩${item.price}</div>
-          <button onclick="changeQuantity(${i}, -1)">－</button>
-          ${item.quantity}
-          <button onclick="changeQuantity(${i}, 1)">＋</button>
-          <button onclick="addToCart(${i})">추가</button>
-        `;
-        menuList.appendChild(el);
-      });
+    // Start recording and detect sound
+    function startRecording() {
+      isRecording = true;
+      updateStatus("Listening...");
+      lastSpeechTime = Date.now();
+
+      // Simulate volume detection
+      initializeAudioProcessing();
     }
 
-    function changeQuantity(index, delta) {
-      menu[index].quantity = Math.max(0, menu[index].quantity + delta);
-      renderMenu();
-    }
-
-    function addToCart(index) {
-      const item = menu[index];
-      if (item.quantity <= 0) return;
-      const existing = cart.find(c => c.name === item.name);
-      if (existing) {
-        existing.quantity += item.quantity;
-      } else {
-        cart.push({ name: item.name, price: item.price, quantity: item.quantity });
-      }
-      item.quantity = 0;
-      renderMenu();
-      updateCart();
-    }
-
-    function updateCart() {
-      const list = document.getElementById("cartList");
-      const total = document.getElementById("cartTotal");
-      if (cart.length === 0) {
-        list.innerText = "장바구니가 비었습니다";
-        total.innerText = "합계: ₩0";
+    function initializeAudioProcessing() {
+      if (!navigator.mediaDevices) {
+        console.error("Your browser does not support media devices.");
         return;
       }
-      let html = "";
-      let sum = 0;
-      cart.forEach(i => {
-        html += `<div>${i.name} × ${i.quantity} = ₩${i.price * i.quantity}</div>`;
-        sum += i.price * i.quantity;
-      });
-      list.innerHTML = html;
-      total.innerText = `합계: ₩${sum}`;
-    }
 
-    function submitOrder() {
-      if (cart.length === 0) return;
-      document.getElementById("submittedText").innerText = "주문이 제출되었습니다!";
-      cart.length = 0;
-      updateCart();
-    }
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          analyser = audioContext.createAnalyser();
+          microphone = audioContext.createMediaStreamSource(stream);
+          javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
 
-    renderMenu();
+          microphone.connect(analyser);
+          analyser.connect(javascriptNode);
+          javascriptNode.connect(audioContext.destination);
 
-    // 마이크 및 녹음
-    const video = document.getElementById("camera");
-    const volumeFill = document.getElementById("volumeFill");
-    const volumeLevel = document.getElementById("volumeLevel");
-    const statusEl = document.getElementById("status");
-    const logEl = document.getElementById("log");
-    const countdownEl = document.getElementById("countdown");
+          javascriptNode.onaudioprocess = function () {
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyser.getByteFrequencyData(dataArray);
 
-    let mediaRecorder;
-    let audioChunks = [];
-    let lastAudioBlob = null;
-    let waitingForUser = false;
-
-    let speaking = false;
-    let silenceStart = null;
-    let talkingStart = null;
-    let hasSent = false;
-    let countdownTimer = null;
-
-    const speakingThreshold = 10;
-    const silenceDelay = 5000;
-    const maxSpeakingDuration = 10000;
-
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then(stream => {
-        video.srcObject = stream;
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const source = ctx.createMediaStreamSource(stream);
-        const analyser = ctx.createAnalyser();
-        analyser.fftSize = 256;
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-        source.connect(analyser);
-        statusEl.innerText = "듣는 중...";
-
-        mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-        mediaRecorder.onstop = () => {
-          lastAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-          audioChunks = [];
-          waitingForUser = true;
-          // statusEl.innerText = "녹음 완료, 확인 후 전송하거나 삭제하세요.";
-          statusEl.innerText = "Recording complete. Please listen, then send or delete.";
-
-        };
-
-        function startCountdown() {
-          let left = maxSpeakingDuration / 1000;
-          countdownEl.innerText = `남은 시간: ${left}s`;
-          countdownTimer = setInterval(() => {
-            left--;
-            countdownEl.innerText = `남은 시간: ${left}s`;
-            if (left <= 0) {
-              clearInterval(countdownTimer);
-              simulateSend("시간 초과 자동 전송");
+            let sum = 0;
+            for (let i = 0; i < bufferLength; i++) {
+              sum += dataArray[i];
             }
-          }, 1000);
-        }
 
-        function stopCountdown() {
-          clearInterval(countdownTimer);
-          countdownEl.innerText = "";
-        }
-
-        function simulateSend(msg) {
-          if (mediaRecorder && mediaRecorder.state === "recording") {
-            mediaRecorder.stop();
-          }
-          speaking = false;
-          hasSent = true;
-          silenceStart = null;
-          talkingStart = null;
-          stopCountdown();
-          logEl.innerText = "녹음 완료됨: " + msg;
-        }
-
-        function checkVolume() {
-          analyser.getByteFrequencyData(dataArray);
-          let sum = 0;
-          for (let i = 0; i < bufferLength; i++) {
-            sum += dataArray[i];
-          }
-          const volume = (sum / bufferLength) / 255 * 100;
-          volumeFill.style.width = volume.toFixed(0) + "%";
-          // volumeLevel.innerText = `볼륨: ${volume.toFixed(0)} (임계값: ${speakingThreshold})`;
-          volumeLevel.innerText = `Volume: ${volume.toFixed(0)} (Threshold: ${speakingThreshold})`;
-
-          const now = Date.now();
-
-          if (volume > speakingThreshold) {
-            if (!speaking && !waitingForUser) {
-              speaking = true;
-              hasSent = false;
-              silenceStart = null;
-              talkingStart = now;
-              startCountdown();
-              statusEl.innerText = "듣는 중...";
-              if (mediaRecorder && mediaRecorder.state !== "recording") {
-                audioChunks = [];
-                mediaRecorder.start();
+            const average = sum / bufferLength;
+            if (average > 10) { // If the sound is above threshold
+              lastSpeechTime = Date.now();
+              updateVolumeBar(average);
+              if (speechDuration < 1) {
+                speechDuration += 0.1; // Incrementing speech duration
               }
             } else {
-              silenceStart = null;
-              if (!talkingStart) talkingStart = now;
-              if (now - talkingStart > maxSpeakingDuration) {
-                simulateSend("메시지가 너무 깁니다");
-              }
+              updateVolumeBar(average);
             }
-          } else if (speaking) {
-            if (!silenceStart) {
-              silenceStart = now;
-            } else if (now - silenceStart >= silenceDelay && !hasSent) {
-              simulateSend("정지 후 자동 전송됨");
+
+            if (Date.now() - lastSpeechTime > silenceThreshold && speechDuration > 1) {
+              sendMessage();
             }
-          }
+          };
+        })
+        .catch(error => console.error("Error accessing microphone: ", error));
+    }
 
-          requestAnimationFrame(checkVolume);
-        }
+    // Update volume bar to reflect audio input
+    function updateVolumeBar(volume) {
+      const volumeFill = document.getElementById("volumeFill");
+      const volumeLevel = document.getElementById("volumeLevel");
+      const percentage = Math.min(100, volume); // Cap at 100% max
+      volumeFill.style.width = percentage + "%";
+      volumeLevel.innerText = `Volume: ${Math.round(volume)} (Threshold: 10)`;
+    }
 
-        checkVolume();
-      })
-      .catch(err => {
-        console.error("Error:", err);
-        statusEl.innerText = "장치 접근 실패";
-      });
-
-    function playLastRecording() {
-      if (lastAudioBlob) {
-        const audio = document.getElementById("lastAudio");
-        audio.src = URL.createObjectURL(lastAudioBlob);
-        audio.style.display = "block";
-        audio.play();
-      } else {
-        // alert("재생할 녹음이 없습니다.");
-        statusEl.innerText = "재생할 녹음이 없습니다.";
+    // Send the recorded message
+    function sendMessage() {
+      if (speechDuration > 1) {
+        isMessageReady = true;
+        updateStatus("Sending...");
+        setTimeout(() => {
+          clearMessages(); // Clear previous messages
+          addMessage("Message Sent", "system");
+          resetRecording();
+        }, 1000);
       }
     }
 
-    function clearRecording() {
-      lastAudioBlob = null;
-      waitingForUser = false;
-      document.getElementById("lastAudio").style.display = "none";
-      logEl.innerText = "녹음이 삭제되었습니다.";
-      statusEl.innerText = "대기 중...";
+    // Clear messages before adding new one
+    function clearMessages() {
+      messageContainer.innerHTML = '';
     }
 
-    function sendRecording() {
-      if (!lastAudioBlob) {
-        // alert("전송할 녹음이 없습니다.");
-        statusEl.innerText = "sent...";
-        return;
-      }
-      logEl.innerText = "녹음이 전송되었습니다.";
-      statusEl.innerText = "전송 완료, 대기 중...";
-      document.getElementById("lastAudio").style.display = "none";
-      lastAudioBlob = null;
-      waitingForUser = false;
+    // Reset recording state
+    function resetRecording() {
+      speechDuration = 0;
+      isMessageReady = false;
+      updateStatus("Listening...");
     }
+
+    // Update status (Listening, Sent, Sending, etc.)
+    function updateStatus(statusText) {
+      document.getElementById("status").innerText = statusText;
+    }
+
+    // Add a new message to the log
+    function addMessage(content, sender) {
+      const msgDiv = document.createElement("div");
+      msgDiv.className = sender === "user" ? "message-user" : "message-system";
+      msgDiv.innerText = content;
+      messageContainer.appendChild(msgDiv);
+      messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+
+    // Initialize with a welcome message
+    addMessage("Welcome! Start speaking.", "system");
+
+    // Start the recording immediately on page load
+    startRecording();
   </script>
 </body>
 </html>
