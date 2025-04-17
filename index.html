@@ -71,7 +71,7 @@
 
       <!-- Right Column: Menu -->
       <div class="col-md-9 mb-4">
-        <div class="card p-3">
+        <div class="card p-3"></div>
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5>韩国美食菜单</h5>
             <select id="languageSelector" class="form-select w-auto">
@@ -85,6 +85,31 @@
             <!-- 菜品将动态加载到这里 -->
           </div>
         </div>
+      </div>
+      
+      <!-- 购物车部分 -->
+      <div class="col-md-3">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body">
+            <h5>🧾 订单摘要</h5>
+            <ul id="cartItems" class="list-group mb-2"></ul>
+            <p><strong>小计: ₩<span id="subtotal">0</span></strong></p>
+            <button class="btn btn-primary" onclick="confirmOrder()">✅ 确认订单</button>
+            <button class="btn btn-success mt-2" onclick="sendOrder()">📤 发送订单</button>
+          </div>
+        </div>
+
+        <!-- 餐馆信息框 -->
+        <div class="card h-100 shadow-sm">
+          <img src="https://example.com/restaurant-image.jpg" class="card-img-top" alt="Restaurant Image">
+          <div class="card-body">
+            <h5 class="card-title">餐馆名称</h5>
+            <p class="card-text">地址: 首尔市某街道123号</p>
+            <button class="btn btn-info" onclick="shareRestaurant()">🔗 分享餐馆</button>
+          </div>
+        </div>
+        </div>
+      </div>
       </div>
       
 
@@ -237,46 +262,158 @@
     startRecording();
 
 
-  const menuUrl = 'https://raw.githubusercontent.com/yourusername/yourrepo/main/menu.json'; // 替换为你自己的链接
-  let menuData = [];
-  let currentLang = 'zh';
+  const menuUrl = 'https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/menu.json'
 
-  async function fetchMenu() {
-    try {
-      const response = await fetch(menuUrl);
-      menuData = await response.json();
-      renderMenu();
-    } catch (err) {
-      console.error('菜单加载失败：', err);
-    }
-  }
+  let cart = {};
+    let menuItems = []; // 菜单项存储
 
-  function renderMenu() {
-    const container = document.getElementById('menuContainer');
-    container.innerHTML = '';
-    menuData.forEach(item => {
-      const card = document.createElement('div');
-      card.className = 'col-md-4 mb-4';
-      card.innerHTML = `
-        <div class="card h-100 shadow-sm">
-          <img src="${item.image}" class="card-img-top" alt="dish">
-          <div class="card-body">
-            <h5 class="card-title">${item[`name_${currentLang}`]}</h5>
-            <p class="card-text">${item.description}</p>
-            <p><strong>₩${item.price}</strong></p>
+    // 从JSON获取菜单项
+    fetch("https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/menu.json")
+      .then(response => response.json())
+      .then(data => {
+        menuItems = data;
+        renderMenu(menuItems);
+      })
+      .catch(error => console.error("Error fetching menu:", error));
+
+    // 渲染菜单
+    function renderMenu(items) {
+      const menuSection = document.getElementById('menuContainer');
+      menuSection.innerHTML = ''; // 清空菜单区域
+
+      items.forEach((item, index) => {
+        const cardHtml = `
+          <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+              <img src="${item.image}" class="card-img-top" alt="dish">
+              <div class="card-body">
+                <h5 class="card-title">${item.name_ko}</h5>
+                <p class="card-text">${item.description}</p>
+                <p><strong>₩${item.price}</strong></p>
+              </div>
+              <div class="card-footer d-flex justify-content-between align-items-center">
+                <div>
+                  <button class="btn btn-sm btn-outline-secondary" onclick="decreaseQuantity(${index})">-</button>
+                  <span id="quantity-${index}" class="mx-2">0</span>
+                  <button class="btn btn-sm btn-outline-secondary" onclick="increaseQuantity(${index})">+</button>
+                </div>
+                <button class="btn btn-sm btn-success" onclick="addToCart(${index})">🛒 添加</button>
+              </div>
+            </div>
           </div>
-        </div>`;
-      container.appendChild(card);
+        `;
+        menuSection.innerHTML += cardHtml;
+      });
+    }
+
+    // 增加菜品数量
+    function increaseQuantity(index) {
+      const qtyEl = document.getElementById(`quantity-${index}`);
+      let qty = parseInt(qtyEl.innerText);
+      qtyEl.innerText = ++qty;
+    }
+
+    // 减少菜品数量
+    function decreaseQuantity(index) {
+      const qtyEl = document.getElementById(`quantity-${index}`);
+      let qty = parseInt(qtyEl.innerText);
+      if (qty > 0) qtyEl.innerText = --qty;
+    }
+
+    // 将菜品添加到购物车
+    function addToCart(index) {
+      const item = menuItems[index];
+      const qty = parseInt(document.getElementById(`quantity-${index}`).innerText);
+      if (qty === 0) return;
+
+      if (cart[index]) {
+        cart[index].quantity += qty;
+      } else {
+        cart[index] = { ...item, quantity: qty };
+      }
+
+      updateCartDisplay();
+    }
+
+    // 更新购物车显示
+    function updateCartDisplay() {
+      const cartList = document.getElementById("cartItems");
+      const subtotalEl = document.getElementById("subtotal");
+      cartList.innerHTML = '';
+      let total = 0;
+
+      Object.values(cart).forEach(item => {
+        total += item.price * item.quantity;
+        const li = document.createElement("li");
+        li.className = "list-group-item d-flex justify-content-between align-items-center";
+        li.innerHTML = `
+          ${item.name_ko} x ${item.quantity}
+          <span>₩${item.price * item.quantity}</span>
+        `;
+        cartList.appendChild(li);
+      });
+
+      subtotalEl.innerText = total;
+    }
+
+    // 确认订单并清空购物车
+    function confirmOrder() {
+      alert("🧾 订单已确认！感谢您的购买！");
+      cart = {};
+      updateCartDisplay();
+    }
+
+    // 发送订单
+    function sendOrder() {
+      alert("📤 订单已发送到餐馆！");
+    }
+
+    // 分享餐馆
+    function shareRestaurant() {
+      const restaurantInfo = "餐馆名称\n地址: 首尔市某街道123号";
+      if (navigator.share) {
+        navigator.share({
+          title: '餐馆信息',
+          text: restaurantInfo,
+          url: window.location.href
+        }).then(() => {
+          console.log("餐馆信息已分享！");
+        }).catch((error) => {
+          console.error("分享失败:", error);
+        });
+      } else {
+        alert("无法分享餐馆信息。");
+      }
+    }
+
+    // 语言选择器的变化
+    document.getElementById('languageSelector').addEventListener('change', function(event) {
+      const selectedLang = event.target.value;
+      updateMenuLanguage(selectedLang);
     });
-  }
 
-  document.getElementById('languageSelector').addEventListener('change', function () {
-    currentLang = this.value;
-    renderMenu();
-  });
-
-  fetchMenu();
-
+    // 更新菜单语言
+    function updateMenuLanguage(lang) {
+      menuItems.forEach(item => {
+        switch(lang) {
+          case 'zh':
+            item.name = item.name_zh;
+            break;
+          case 'en':
+            item.name = item.name_en;
+            break;
+          case 'ko':
+            item.name = item.name_ko;
+            break;
+          case 'ja':
+            item.name = item.name_ja;
+            break;
+          default:
+            item.name = item.name_ko;
+        }
+      });
+      renderMenu(menuItems);  // 重新渲染菜单
+    }
 
   </script>
 </body>
