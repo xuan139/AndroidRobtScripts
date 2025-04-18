@@ -47,6 +47,13 @@
       background-color: #f8f8f8;
       text-align: right;
     }
+
+    .restaurant-img {
+      height: 250px;
+      width: 100%;
+      object-fit: cover;
+    }
+
   </style>
 </head>
 <body>
@@ -67,9 +74,20 @@
           <div id="countdown"></div>
           <div id="log" class="mt-3"></div>
         </div>
+
+        <div class="card shadow-sm p-3 mt-3">
+          <h5>奶奶的忠孝堂蚕室店</h5>
+          <img src="https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/name.jpg" class="card-img-top restaurant-img" alt="restaurant">
+          <div class="card-body">
+            <p><strong>地址：</strong>서울 송파구 석촌호수로 110</p>
+            <button class="btn btn-info w-100">分享</button>
+          </div>
+        </div>
       </div>
 
-      <div class="col-md-9 mb-4">
+      
+
+      <div class="col-md-6 mb-4">
         <div class="card p-3">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5>韩国美食菜单</h5>
@@ -82,14 +100,14 @@
           </div>
           <div class="row">
             <!-- 菜品列表在左侧 -->
-            <div class="col-md-8">
+            <div class="col-md-12">
               <div class="row" id="menuContainer">
                 <!-- 菜品会动态加载到这里 -->
               </div>
             </div>
       
             <!-- 餐馆信息框在右侧 -->
-            <div class="col-md-4">
+            <!-- <div class="col-md-4">
               <div class="card shadow-sm p-3">
                 <h5>奶奶的忠孝堂蚕室店</h5>
                 <img src="https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/name.jpg" class="card-img-top img-fluid" alt="restaurant">
@@ -98,7 +116,7 @@
                   <button class="btn btn-info w-100">分享</button>
                 </div>
               </div>
-            </div>
+            </div> -->
           </div>
         </div>
       </div>
@@ -106,26 +124,20 @@
       <!-- 订单摘要放在下方 -->
       <div class="col-md-3">
         <div class="card shadow-sm p-3">
-          <h5>订单摘要</h5>
+          <h5>Table 1 Order Details</h5>
           <div id="orderSummary">
-            <!-- 订单摘要内容动态添加 -->
-            <ul class="list-group">
-              <li class="list-group-item d-flex justify-content-between align-items-center">
-                <span>菜品 1</span>
-                <span>₩10,000</span>
-              </li>
-              <li class="list-group-item d-flex justify-content-between align-items-center">
-                <span>菜品 2</span>
-                <span>₩12,000</span>
-              </li>
-              <!-- 其他菜品项 -->
+            <ul class="list-group" id="cartItems">
+              <!-- 动态添加的订单条目 -->
             </ul>
             <div class="mt-3 d-flex justify-content-between">
-              <span>总计</span>
-              <span>₩22,000</span>
+              <span>Total</span>
+              <span id="subtotal">₩0</span>
             </div>
-            <button class="btn btn-primary mt-2 w-100">确认订单</button>
+            <button class="btn btn-primary mt-2 w-100" onclick="confirmOrder()">Confirm</button>
+            <button class="btn btn-secondary mt-2 w-100" onclick="cancelOrder()">Cancel</button>
+
           </div>
+          
         </div>
       </div>
             
@@ -314,7 +326,7 @@
                   <span id="quantity-${index}" class="mx-2">0</span>
                   <button class="btn btn-sm btn-outline-secondary" onclick="increaseQuantity(${index})">+</button>
                 </div>
-                <button class="btn btn-sm btn-success" onclick="addToCart(${index})">🛒 添加</button>
+                <button class="btn btn-sm btn-success" onclick="addToCart(${index})">🛒 Cart</button>
               </div>
             </div>
           </div>
@@ -352,6 +364,20 @@
       updateCartDisplay();
     }
 
+    // 取消订单并重置所有数量
+    function cancelOrder() {
+      if (confirm("Cancel Orders？")) {
+        cart = {};
+        // 重置所有数量显示为 0
+        menuItems.forEach((_, index) => {
+          const qtyEl = document.getElementById(`quantity-${index}`);
+          if (qtyEl) qtyEl.innerText = "0";
+        });
+        updateCartDisplay();
+      }
+    }
+
+
     // 更新购物车显示
     function updateCartDisplay() {
       const cartList = document.getElementById("cartItems");
@@ -370,13 +396,19 @@
         cartList.appendChild(li);
       });
 
-      subtotalEl.innerText = total;
+      subtotalEl.innerText = `₩${total.toLocaleString()}`;
     }
+
 
     // 确认订单并清空购物车
     function confirmOrder() {
-      alert("🧾 订单已确认！感谢您的购买！");
+      alert("🧾 Sent Orders！");
       cart = {};
+        // 重置所有数量显示为 0
+      menuItems.forEach((_, index) => {
+        const qtyEl = document.getElementById(`quantity-${index}`);
+        if (qtyEl) qtyEl.innerText = "0";
+      });
       updateCartDisplay();
     }
 
@@ -385,23 +417,6 @@
       alert("📤 订单已发送到餐馆！");
     }
 
-    // 分享餐馆
-    function shareRestaurant() {
-      const restaurantInfo = "餐馆名称\n地址: 首尔市某街道123号";
-      if (navigator.share) {
-        navigator.share({
-          title: '餐馆信息',
-          text: restaurantInfo,
-          url: window.location.href
-        }).then(() => {
-          console.log("餐馆信息已分享！");
-        }).catch((error) => {
-          console.error("分享失败:", error);
-        });
-      } else {
-        alert("无法分享餐馆信息。");
-      }
-    }
 
     // 语言选择器的变化
     document.getElementById('languageSelector').addEventListener('change', function(event) {
