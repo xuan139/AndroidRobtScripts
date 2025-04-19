@@ -48,11 +48,19 @@
       text-align: right;
     }
 
-    .restaurant-img {
+    /* .restaurant-img {
       height: 250px;
       width: 100%;
       object-fit: cover;
+    } */
+
+
+    .restaurant-img {
+      width: 100%;
+      height: auto; /* 或 height: 200px + object-fit: cover */
     }
+
+
 
   </style>
 </head>
@@ -71,8 +79,6 @@
             <div class="progress-bar bg-success" id="volumeFill" style="width: 0%;"></div>
           </div>
           <!-- <div id="volumeLevel">Volume: 0 (Threshold: 10)</div> -->
-
-          
           <div class="d-flex align-items-center mb-2">
             <div id="volumeLevel" class="me-2">Volume: 0 (Threshold: 10)</div>
             <button id="threshold-dec" class="btn btn-secondary btn-sm me-1">-</button>
@@ -86,7 +92,7 @@
         </div>
 
         <div class="card shadow-sm p-3 mt-3">
-          <img src="https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/name.jpg" class="card-img-top restaurant-img" alt="restaurant">
+          <img src="https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/face.png" class="card-img-top restaurant-img" alt="restaurant">
           <div class="card-body">
             <p><strong>地址：</strong>서울 송파구 석촌호수로 110</p>
             <button class="btn btn-info w-100">share</button>
