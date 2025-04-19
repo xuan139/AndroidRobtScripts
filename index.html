@@ -409,6 +409,11 @@
     //   resetCart();  // 调用清空购物车功能
     // }
 
+    function dedent(str) {
+      return str.replace(/^[ \t]+/gm, '');
+    }
+
+
     function confirmOrder() {
       // 固定收银员名字为 "wang"
       const cashierName = "wang";
@@ -417,7 +422,7 @@
       const orderTime = new Date().toLocaleString(); // 获取当前时间（格式化）
 
       // 更新订单摘要
-      let receiptContent = `
+      let receiptContent = dedent(`
         🧾 Receipt
         -----------------------
         Table: 1
@@ -427,7 +432,7 @@
         -----------------------
         Order Details:
         -----------------------
-      `;
+      `);
 
       // 添加每个菜品
       cart.forEach(item => {
@@ -466,9 +471,15 @@
       let total = 0;
 
       cart.forEach(item => {
-        const itemTotal = item.price * item.quantity;
-        total += itemTotal;
-        receipt += `${item.name} x ${item.quantity} = ₩${itemTotal}\n`;
+        const lineTotal = item.price * item.quantity;
+        total += lineTotal;
+
+        // 名称加上规格（如 小/大），用 padEnd 补齐长度
+        const name = (item.name + (item.spec || '')).padEnd(18, ' ');
+        const qty = `x ${item.quantity}`.padEnd(6, ' ');
+        const price = `= ₩${lineTotal}`;
+
+        receipt += `${name}${qty}${price}\n`;
       });
 
       receipt += `\nTotal: ₩${total}`;
