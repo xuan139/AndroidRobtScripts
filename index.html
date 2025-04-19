@@ -83,7 +83,7 @@
               <span id="subtotal">₩0</span>
             </div>
             <button class="btn btn-primary mt-2 w-100" onclick="confirmOrder()">Confirm</button>
-            <button class="btn btn-secondary mt-2 w-100" onclick="cancelOrder()">Cancel</button>
+            <button class="btn btn-secondary mt-2 w-100" onclick="cancelOrder()">Reset</button>
 
             <!-- 打印小票展示区 -->
             <!-- 打印小票展示区 -->
@@ -91,6 +91,7 @@
               <h6>🧾 Receipt</h6>
               <pre id="receiptContent" class="bg-light p-2 rounded" style="font-size: 0.9rem;"></pre>
               <button class="btn btn-outline-secondary w-100 mt-2" onclick="printReceipt()">🖨️ Print</button>
+              <button class="btn btn-outline-danger w-100 mt-2" onclick="clearReceipt()">🧹 Clear Receipt</button>
             </div>
 
 
@@ -450,11 +451,9 @@
 
     // 取消订单并清空购物车
     function cancelOrder() {
-      alert("❌ Order Cancelled！");
       resetCart();  // 调用清空购物车功能
+      clearReceipt(); // 清除小票内容并隐藏区域
     }
-
-
 
     // 发送订单
     function sendOrder() {
@@ -479,6 +478,10 @@
       document.getElementById('receiptSection').classList.remove('d-none');
     }
 
+    function clearReceipt() {
+      document.getElementById('receiptContent').textContent = '';
+      document.getElementById('receiptSection').classList.add('d-none');
+    }
 
     function printReceipt() {
       const receiptText = document.getElementById('receiptContent').textContent;
