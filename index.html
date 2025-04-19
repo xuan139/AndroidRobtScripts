@@ -80,9 +80,9 @@
           </div>
           <!-- <div id="volumeLevel">Volume: 0 (Threshold: 10)</div> -->
           <div class="d-flex align-items-center mb-2">
-            <div id="volumeLevel" class="me-2">Volume: 0 (Threshold: 10)</div>
-            <button id="threshold-dec" class="btn btn-secondary btn-sm me-1">-</button>
-            <button id="threshold-inc" class="btn btn-secondary btn-sm">+</button>
+            <div id="volumeLevel" class="me-2">Volume: 0 (Threshold: 20)</div>
+            <!-- <button id="threshold-dec" class="btn btn-secondary btn-sm me-1">-</button>
+            <button id="threshold-inc" class="btn btn-secondary btn-sm">+</button> -->
           </div>
           
 
@@ -242,6 +242,7 @@
             if (Date.now() - lastSpeechTime > silenceThreshold && speechDuration > 1) {
               sendMessage();
             }
+
           };
         })
         .catch(error => console.error("Error accessing microphone: ", error));
@@ -449,26 +450,6 @@
       });
       renderMenu(menuItems);  // 重新渲染菜单
     }
-
-    let currentVolume = 0;          // 假设这个是自动变化的音量值
-    let threshold = 10;             // 我们手动调节的阈值
-
-    function updateVolumeDisplay() {
-      document.getElementById('volumeLevel').textContent =
-        `Volume: ${currentVolume} (Threshold: ${threshold})`;
-    }
-
-    // 点击 + 按钮，增加阈值
-    document.getElementById('threshold-inc').addEventListener('click', () => {
-      threshold++;
-      updateVolumeDisplay();
-    });
-
-    // 点击 - 按钮，减少阈值
-    document.getElementById('threshold-dec').addEventListener('click', () => {
-      if (threshold > 0) threshold--;
-      updateVolumeDisplay();
-    });
 
 
 
