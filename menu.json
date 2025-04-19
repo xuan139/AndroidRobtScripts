@@ -9,7 +9,6 @@
       "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.png"
     },
 
-
     {
       "name_ko": "통추어탕+돌솥밥",
       "name_en": "Bibimbap",
@@ -45,6 +44,17 @@
       "description": "",
       "price": "7000",
       "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.png "
+    },
+    {
+      "name_ko": "돌솥밥 추가",
+      "name_en": "Samgyeopsal",
+      "name_zh": "烤五花肉",
+      "name_ja": "サムギョプサル",
+      "description": "",
+      "price": "3000",
+      "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.png "
     }
   ]
+
+
   
