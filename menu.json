@@ -1,59 +1,49 @@
 [
     {
-      "name_ko": "불고기",
+      "name_ko": "추어탕+돌솥밥",
       "name_en": "Bulgogi",
       "name_zh": "韩式烤牛肉",
       "name_ja": "プルコギ",
       "description": "",
-      "price": "12000",
+      "price": "13000",
       "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.png"
-
-
-
     },
+
+
     {
-      "name_ko": "비빔밥",
+      "name_ko": "통추어탕+돌솥밥",
       "name_en": "Bibimbap",
       "name_zh": "石锅拌饭",
       "name_ja": "ビビンバ",
       "description": "",
-      "price": "10000",
+      "price": "15000",
       "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.png"
     },
     {
-      "name_ko": "김치찌개",
+      "name_ko": "추어튀김 小",
       "name_en": "Kimchi Stew",
       "name_zh": "泡菜锅",
       "name_ja": "キムチチゲ",
       "description": "",
-      "price": "9000",
+      "price": "8000",
       "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.png"
     },
     {
-      "name_ko": "삼겹살",
+      "name_ko": "추어튀김 大",
       "name_en": "Samgyeopsal",
       "name_zh": "烤五花肉",
       "name_ja": "サムギョプサル",
       "description": "",
-      "price": "15000",
-      "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.png "
+      "price": "16000",
+      "image": "https://raw.gxithubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.png "
     },
     {
-      "name_ko": "삼겹살",
+      "name_ko": "불만두",
       "name_en": "Samgyeopsal",
       "name_zh": "烤五花肉",
       "name_ja": "サムギョプサル",
       "description": "",
-      "price": "15000",
-      "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.png "
-    },
-    {
-      "name_ko": "삼겹살",
-      "name_en": "Samgyeopsal",
-      "name_zh": "烤五花肉",
-      "name_ja": "サムギョプサル",
-      "description": "",
-      "price": "15000",
+      "price": "7000",
       "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/menu.png "
     }
   ]
