@@ -297,7 +297,7 @@
 
   const menuUrl = 'https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/menu.json'
 
-  let cart = {};
+    let cart = [];
     let menuItems = []; // 菜单项存储
 
     // 从JSON获取菜单项
@@ -309,64 +309,86 @@
       })
       .catch(error => console.error("Error fetching menu:", error));
 
-    // 渲染菜单
-    function renderMenu(items) {
-      const menuSection = document.getElementById('menuContainer');
-      menuSection.innerHTML = ''; // 清空菜单区域
+      function renderMenu(items) {
+        const menuSection = document.getElementById('menuContainer');
+        menuSection.innerHTML = ''; // 清空菜单区域
 
-      items.forEach((item, index) => {
-        const cardHtml = `
-          <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm">
-              <img src="${item.image}" class="card-img-top img-fluid" alt="dish">
-              <div class="card-body">
-                <h5 class="card-title">${item.name_ko}</h5>
-                <p class="card-text">${item.description}</p>
-                <p><strong>₩${item.price}</strong></p>
-              </div>
-              <div class="card-footer d-flex justify-content-between align-items-center">
-                <div>
-                  <button class="btn btn-sm btn-outline-secondary" onclick="decreaseQuantity(${index})">-</button>
-                  <span id="quantity-${index}" class="mx-2">0</span>
-                  <button class="btn btn-sm btn-outline-secondary" onclick="increaseQuantity(${index})">+</button>
+        items.forEach((item, index) => {
+          const cardHtml = `
+            <div class="col-md-4 mb-4">
+              <div class="card h-100 shadow-sm">
+                <img src="${item.image}" class="card-img-top img-fluid" alt="dish">
+                <div class="card-body">
+                  <h5 class="card-title">${item.name_ko}</h5>
+                  <p class="card-text">${item.description}</p>
+                  <p><strong>₩${item.price}</strong></p>
                 </div>
-                <button class="btn btn-sm btn-success" onclick="addToCart(${index})">🛒 Cart</button>
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                  <div>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="decreaseQuantity(${index})">-</button>
+                    <span id="quantity-${index}" class="mx-2">0</span>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="increaseQuantity(${index})">+</button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        `;
-        menuSection.innerHTML += cardHtml;
-      });
-    }
-
-    // 增加菜品数量
-    function increaseQuantity(index) {
-      const qtyEl = document.getElementById(`quantity-${index}`);
-      let qty = parseInt(qtyEl.innerText);
-      qtyEl.innerText = ++qty;
-    }
-
-    // 减少菜品数量
-    function decreaseQuantity(index) {
-      const qtyEl = document.getElementById(`quantity-${index}`);
-      let qty = parseInt(qtyEl.innerText);
-      if (qty > 0) qtyEl.innerText = --qty;
-    }
-
-    // 将菜品添加到购物车
-    function addToCart(index) {
-      const item = menuItems[index];
-      const qty = parseInt(document.getElementById(`quantity-${index}`).innerText);
-      if (qty === 0) return;
-
-      if (cart[index]) {
-        cart[index].quantity += qty;
-      } else {
-        cart[index] = { ...item, quantity: qty };
+          `;
+          menuSection.innerHTML += cardHtml;
+        });
       }
 
-      updateCartDisplay();
-    }
+
+      function increaseQuantity(index) {
+        const item = menuItems[index];
+        const existing = cart.find(ci => ci.index === index);
+
+        if (existing) {
+          existing.quantity++;
+        } else {
+          cart.push({ index, name: item.name_ko, price: item.price, quantity: 1 });
+        }
+
+        document.getElementById(`quantity-${index}`).textContent = existing ? existing.quantity : 1;
+        renderCartSummary();
+      }
+
+      function decreaseQuantity(index) {
+        const existing = cart.find(ci => ci.index === index);
+
+        if (existing) {
+          existing.quantity--;
+          if (existing.quantity <= 0) {
+            cart = cart.filter(ci => ci.index !== index);
+            document.getElementById(`quantity-${index}`).textContent = 0;
+          } else {
+            document.getElementById(`quantity-${index}`).textContent = existing.quantity;
+          }
+          renderCartSummary();
+        }
+      }
+
+
+      function renderCartSummary() {
+        const cartItemsContainer = document.getElementById('cartItems');
+        const cartTotalElement = document.getElementById('subtotal');
+        cartItemsContainer.innerHTML = '';
+
+        let total = 0;
+
+        cart.forEach(item => {
+          const itemTotal = item.price * item.quantity;
+          total += itemTotal;
+
+          const li = document.createElement('li');
+          li.className = 'list-group-item d-flex justify-content-between align-items-center';
+          li.innerHTML = `${item.name} x ${item.quantity} <span>₩${itemTotal}</span>`;
+          cartItemsContainer.appendChild(li);
+        });
+
+        cartTotalElement.textContent = `₩${total}`;
+      }
+
+
 
     // 取消订单并重置所有数量
     function cancelOrder() {
@@ -381,40 +403,38 @@
       }
     }
 
+    // 清空购物车并更新界面
+    function resetCart() {
+      // 清空购物车数组
+      cart = [];
 
-    // 更新购物车显示
-    function updateCartDisplay() {
-      const cartList = document.getElementById("cartItems");
-      const subtotalEl = document.getElementById("subtotal");
-      cartList.innerHTML = '';
-      let total = 0;
-
-      Object.values(cart).forEach(item => {
-        total += item.price * item.quantity;
-        const li = document.createElement("li");
-        li.className = "list-group-item d-flex justify-content-between align-items-center";
-        li.innerHTML = `
-          ${item.name_ko} x ${item.quantity}
-          <span>₩${item.price * item.quantity}</span>
-        `;
-        cartList.appendChild(li);
-      });
-
-      subtotalEl.innerText = `₩${total.toLocaleString()}`;
-    }
-
-
-    // 确认订单并清空购物车
-    function confirmOrder() {
-      alert("🧾 Sent Orders！");
-      cart = {};
-        // 重置所有数量显示为 0
+      // 重置所有数量显示为 0
       menuItems.forEach((_, index) => {
         const qtyEl = document.getElementById(`quantity-${index}`);
         if (qtyEl) qtyEl.innerText = "0";
       });
-      updateCartDisplay();
+
+      // 清空订单摘要和金额
+      const cartItemsContainer = document.getElementById('cartItems');
+      cartItemsContainer.innerHTML = '';
+      
+      const cartTotalElement = document.getElementById('subtotal');
+      cartTotalElement.textContent = '₩0';
     }
+
+    // 确认订单并清空购物车
+    function confirmOrder() {
+      alert("🧾 Sent Orders！");
+      resetCart();  // 调用清空购物车功能
+    }
+
+    // 取消订单并清空购物车
+    function cancelOrder() {
+      alert("❌ Order Cancelled！");
+      resetCart();  // 调用清空购物车功能
+    }
+
+
 
     // 发送订单
     function sendOrder() {
