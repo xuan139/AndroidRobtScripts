@@ -46,7 +46,8 @@
         </div>
       </div>
 
-      
+      <!-- 弹出新网页的跳转按钮 -->
+      <a href="backend.html" target="_blank" class="arrow-button" title="Open Backend in New Tab"></a>
 
       <div class="col-md-6 mb-4">
         <div class="card p-3">
@@ -452,8 +453,10 @@
       const receiptSection = document.getElementById('receiptSection');
       receiptSection.classList.remove('d-none');  // 显示小票区
       receiptSection.style.display = 'block'; // 确保小票显示
-    }
 
+      const tableNumber = 1; // 可以改成动态选择的桌号
+      submitOrder(tableNumber);
+    }
 
     // 取消订单并清空购物车
     function cancelOrder() {
@@ -464,6 +467,23 @@
     // 发送订单
     function sendOrder() {
       alert("📤 订单已发送到餐馆！");
+    }
+
+    function submitOrder(tableNumber) {
+      const orderData = {
+        table: tableNumber,
+        orders: cart.map(item => ({
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price
+        })),
+        total: cart.reduce((acc, item) => acc + item.price * item.quantity, 0),
+        timestamp: new Date().toLocaleString(), // 获取当前时间
+        cashier: "wang" // 假设收银员固定为"wang"
+      };
+
+      // 将订单数据保存到 localStorage 中
+      localStorage.setItem(`table-${tableNumber}`, JSON.stringify(orderData));
     }
 
 
