@@ -442,8 +442,9 @@
 
       // 总计
       const totalAmount = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-      receiptContent += `-----------------------\nTotal: ₩${totalAmount}\n`;
-
+      receiptContent += `-----------------------\nTotal: ₩${totalAmount}\n\n\n`;
+      receiptContent += `Address: 서울 송파구 석촌호수로 110\n`;
+      receiptContent += `Tel: 050714181022\n`;
       // 显示小票内容
       document.getElementById('receiptContent').textContent = receiptContent;
 
