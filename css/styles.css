@@ -76,3 +76,25 @@ body {
 .arrow-button:hover {
   background-color: #2980b9;
 }
+
+
+
+  .icon-btn {
+    background-color: #00C300;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+  }
+
+  .icon-btn svg {
+    margin-right: 8px;
+  }
+
+  .icon-btn:hover {
+    background-color: #009900;
+  }
