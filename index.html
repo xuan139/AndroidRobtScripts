@@ -60,15 +60,13 @@
       
       <div class="col-md-6 mb-4">
         <div class="card p-3">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5>韩国美食菜单</h5>
-            <select id="languageSelector" class="form-select w-auto">
-              <option value="zh">中文</option>
-              <option value="en">English</option>
-              <option value="ko">한국어</option>
-              <option value="ja">日本語</option>
-            </select>
-          </div>
+          <select id="languageSelector" class="form-select w-auto mb-3">
+            <option value="ko">🇰🇷 한국어</option>
+            <option value="zh">🇨🇳 中文</option>
+            <option value="ja">🇯🇵 日本語</option>
+            <option value="en">🇺🇸 English</option>
+          </select>
+          
           <div class="row">
             <!-- 菜品列表在左侧 -->
             <div class="col-md-12">
@@ -263,10 +261,11 @@
 
   const menuUrl = 'https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/menu.json'
 
-    let cart = [];
-    let menuItems = []; // 菜单项存储
+  let cart = [];
+  let menuItems = [];
+  let currentLanguage = 'ko'; // 默认韩语
 
-    // 从JSON获取菜单项
+  // 获取菜单数据
     fetch("https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/menu.json")
       .then(response => response.json())
       .then(data => {
@@ -275,35 +274,46 @@
       })
       .catch(error => console.error("Error fetching menu:", error));
 
-      function renderMenu(items) {
-        const menuSection = document.getElementById('menuContainer');
-        menuSection.innerHTML = ''; // 清空菜单区域
+    // 监听语言切换
+    document.getElementById('languageSelector').addEventListener('change', function (event) {
+      updateMenuLanguage(event.target.value);
+    });
 
-        items.forEach((item, index) => {
-          const cardHtml = `
-            <div class="col-md-4 mb-4">
-              <div class="card h-100 shadow-sm">
-                <img src="${item.image}" class="card-img-top img-fluid" alt="dish">
-                <div class="card-body">
-                  <h5 class="card-title">${item.name_ko}</h5>
-                  <p class="card-text">${item.description}</p>
-                  <p><strong>₩${item.price}</strong></p>
-                </div>
-                <div class="card-footer d-flex justify-content-between align-items-center">
-                  <div>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="decreaseQuantity(${index})">-</button>
-                    <span id="quantity-${index}" class="mx-2">0</span>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="increaseQuantity(${index})">+</button>
-                  </div>
+    // 切换语言，仅控制 currentLanguage 不修改原始数据
+    function updateMenuLanguage(lang) {
+      currentLanguage = lang;
+      renderMenu(menuItems);
+    }
+
+    // 渲染菜单
+    function renderMenu(items) {
+      const menuSection = document.getElementById('menuContainer');
+      menuSection.innerHTML = '';
+
+      items.forEach((item, index) => {
+        const itemName = item[`name_${currentLanguage}`] || item.name_ko || 'N/A';
+        const cardHtml = `
+          <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+              <img src="${item.image}" class="card-img-top img-fluid" alt="dish">
+              <div class="card-body">
+                <h5 class="card-title">${itemName}</h5>
+                <p class="card-text">${item.description || ''}</p>
+                <p><strong>₩${item.price}</strong></p>
+              </div>
+              <div class="card-footer d-flex justify-content-between align-items-center">
+                <div>
+                  <button class="btn btn-sm btn-outline-secondary" onclick="decreaseQuantity(${index})">-</button>
+                  <span id="quantity-${index}" class="mx-2">0</span>
+                  <button class="btn btn-sm btn-outline-secondary" onclick="increaseQuantity(${index})">+</button>
                 </div>
               </div>
             </div>
-          `;
-          menuSection.innerHTML += cardHtml;
-        });
-      }
-
-
+          </div>
+        `;
+        menuSection.innerHTML += cardHtml;
+      });
+    }
       function increaseQuantity(index) {
         const item = menuItems[index];
         const existing = cart.find(ci => ci.index === index);
@@ -355,26 +365,6 @@
       }
 
 
-
-    // 取消订单并重置所有数量
-    // function cancelOrder() {
-    //   if (confirm("Cancel Orders？")) {
-    //     cart = {};
-    //     // 重置所有数量显示为 0
-    //     menuItems.forEach((_, index) => {
-    //       const qtyEl = document.getElementById(`quantity-${index}`);
-    //       if (qtyEl) qtyEl.innerText = "0";
-    //     });
-    //     updateCartDisplay();
-    //       // 清空订单条目和小票内容
-    //     document.getElementById('cartItems').innerHTML = '';
-    //     document.getElementById('subtotal').textContent = '₩0';
-    //     document.getElementById('receiptContent').textContent = '';
-
-    //     // 隐藏小票区
-    //     document.getElementById('receiptSection').classList.add('d-none');
-    //   }
-    // }
 
     function cancelOrder() {
       // 清空购物车
@@ -532,34 +522,7 @@
       printWindow.print();
     }
 
-    // 语言选择器的变化
-    document.getElementById('languageSelector').addEventListener('change', function(event) {
-      const selectedLang = event.target.value;
-      updateMenuLanguage(selectedLang);
-    });
 
-    // 更新菜单语言
-    function updateMenuLanguage(lang) {
-      menuItems.forEach(item => {
-        switch(lang) {
-          case 'zh':
-            item.name = item.name_zh;
-            break;
-          case 'en':
-            item.name = item.name_en;
-            break;
-          case 'ko':
-            item.name = item.name_ko;
-            break;
-          case 'ja':
-            item.name = item.name_ja;
-            break;
-          default:
-            item.name = item.name_ko;
-        }
-      });
-      renderMenu(menuItems);  // 重新渲染菜单
-    }
 
 
 
