@@ -1,9 +1,9 @@
 [
     {
       "name_ko": "추어탕+돌솥밥",
-      "name_en": "Bulgogi",
-      "name_zh": "韩式烤牛肉",
-      "name_ja": "プルコギ",
+      "name_en": "",
+      "name_zh": "泥鰍湯（肉泥）+石鍋飯",
+      "name_ja": "",
       "description": "",
       "price": "13000",
       "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/13000.png"
@@ -11,45 +11,45 @@
 
     {
       "name_ko": "통추어탕+돌솥밥",
-      "name_en": "Bibimbap",
-      "name_zh": "石锅拌饭",
-      "name_ja": "ビビンバ",
+      "name_en": "",
+      "name_zh": "泥鰍湯(整支魚）+石鍋飯",
+      "name_ja": "",
       "description": "",
       "price": "15000",
       "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/13000.png"
     },
     {
       "name_ko": "추어튀김 小",
-      "name_en": "Kimchi Stew",
-      "name_zh": "泡菜锅",
-      "name_ja": "キムチチゲ",
+      "name_en": "",
+      "name_zh": "酥炸泥鰍 小",
+      "name_ja": "",
       "description": "",
       "price": "8000",
       "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/13000.png"
     },
     {
       "name_ko": "추어튀김 大",
-      "name_en": "Samgyeopsal",
-      "name_zh": "烤五花肉",
-      "name_ja": "サムギョプサル",
+      "name_en": "",
+      "name_zh": "酥炸泥鰍 大",
+      "name_ja": "",
       "description": "",
       "price": "16000",
       "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/13000.png "
     },
     {
       "name_ko": "불만두",
-      "name_en": "Samgyeopsal",
-      "name_zh": "烤五花肉",
-      "name_ja": "サムギョプサル",
+      "name_en": "",
+      "name_zh": "泥鰍湯餃",
+      "name_ja": "",
       "description": "",
       "price": "7000",
       "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/13000.png "
     },
     {
       "name_ko": "돌솥밥 추가",
-      "name_en": "Samgyeopsal",
-      "name_zh": "烤五花肉",
-      "name_ja": "サムギョプサル",
+      "name_en": "",
+      "name_zh": "單點石鍋飯",
+      "name_ja": "",
       "description": "",
       "price": "3000",
       "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/13000.png "
