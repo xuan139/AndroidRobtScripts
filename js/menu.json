@@ -4,19 +4,19 @@
       "name_en": "",
       "name_zh": "泥鰍湯（肉泥）+石鍋飯",
       "name_ja": "",
-      "description": "",
+      "description": "描述",
       "price": "13000",
-      "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/13000.png"
+      "image": "./images/13000.png"
     },
 
     {
       "name_ko": "통추어탕+돌솥밥",
       "name_en": "",
-      "name_zh": "泥鰍湯(整支魚）+石鍋飯",
+      "name_zh": "泥鰍湯 (整支魚）+石鍋飯",
       "name_ja": "",
       "description": "",
       "price": "15000",
-      "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/13000.png"
+      "image": "./images/13000.png"    
     },
     {
       "name_ko": "추어튀김 小",
@@ -25,7 +25,7 @@
       "name_ja": "",
       "description": "",
       "price": "8000",
-      "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/13000.png"
+      "image": "./images/13000.png"    
     },
     {
       "name_ko": "추어튀김 大",
@@ -34,7 +34,7 @@
       "name_ja": "",
       "description": "",
       "price": "16000",
-      "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/13000.png "
+      "image": "./images/13000.png"    
     },
     {
       "name_ko": "불만두",
@@ -43,7 +43,7 @@
       "name_ja": "",
       "description": "",
       "price": "7000",
-      "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/13000.png "
+      "image": "./images/13000.png"   
     },
     {
       "name_ko": "돌솥밥 추가",
@@ -52,7 +52,8 @@
       "name_ja": "",
       "description": "",
       "price": "3000",
-      "image": "https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/13000.png "
+      "image": "./images/13000.png"
+        
     }
   ]
 
