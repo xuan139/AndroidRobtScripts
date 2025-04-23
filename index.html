@@ -259,14 +259,14 @@
     startRecording();
 
 
-  const menuUrl = 'https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/menu.json'
+  // const menuUrl = 'https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/menu.json'
 
   let cart = [];
   let menuItems = [];
   let currentLanguage = 'ko'; // 默认韩语
 
   // 获取菜单数据
-    fetch("menu.json")
+    fetch("../db/menu.json")
       .then(response => response.json())
       .then(data => {
         menuItems = data;
