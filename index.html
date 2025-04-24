@@ -285,20 +285,22 @@
       renderMenu(menuItems);
     }
 
-    // 渲染菜单
+
     function renderMenu(items) {
       const menuSection = document.getElementById('menuContainer');
       menuSection.innerHTML = '';
 
       items.forEach((item, index) => {
-        const itemName = item[`name_${currentLanguage}`] || item.name_ko || 'N/A';
+        const name = item[`name_${currentLanguage}`] || item.name_ko;
+        const description = item[`description_${currentLanguage}`] || '';
+
         const cardHtml = `
           <div class="col-md-4 mb-4">
             <div class="card h-100 shadow-sm">
               <img src="${item.image}" class="card-img-top img-fluid" alt="dish">
               <div class="card-body">
-                <h5 class="card-title">${itemName}</h5>
-                <p class="card-text">${item.description || ''}</p>
+                <h5 class="card-title">${name}</h5>
+                <p class="card-text">${description}</p>
                 <p><strong>₩${item.price}</strong></p>
               </div>
               <div class="card-footer d-flex justify-content-between align-items-center">
@@ -314,6 +316,7 @@
         menuSection.innerHTML += cardHtml;
       });
     }
+
       function increaseQuantity(index) {
         const item = menuItems[index];
         const existing = cart.find(ci => ci.index === index);
