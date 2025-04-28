@@ -6,7 +6,7 @@ let currentLanguage = 'ko'; // 默认韩语
 
 // https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/menu.json
 // 获取菜单数据
-  fetch("https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/menu.json")
+  fetch("../static/db/menu.json")
     .then(response => response.json())
     .then(data => {
       menuItems = data;
