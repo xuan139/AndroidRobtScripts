@@ -9,7 +9,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/static/js", StaticFiles(directory="static/js"), name="js")
 app.mount("/static/css", StaticFiles(directory="static/css"), name="css")
 app.mount("/static/db", StaticFiles(directory="static/db"), name="db")
-app.mount("/static/image", StaticFiles(directory="static/image"), name="image")
+app.mount("/static/images", StaticFiles(directory="static/images"), name="images")
 
 @app.get("/", response_class=HTMLResponse)
 def read_index():
