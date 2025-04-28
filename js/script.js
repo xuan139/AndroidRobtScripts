@@ -5,7 +5,7 @@ let menuItems = [];
 let currentLanguage = 'ko'; // 默认韩语
 
 // 获取菜单数据
-  fetch("./db/menu.json")
+  fetch("../menu.json")
     .then(response => response.json())
     .then(data => {
       menuItems = data;
