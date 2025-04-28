@@ -9,7 +9,7 @@
       "description_ko": "고소한 미꾸라지탕에 간 고기를 넣고 뜨거운 돌솥밥과 함께 제공합니다.",
       "description_zh": "加入絞肉的濃郁泥鰍湯，搭配熱騰騰的石鍋飯。",
       "price": "13000",
-      "image": "/images/13000.png"
+      "image": "./images/13000.png"
     },
     {
       "name_ko": "통추어탕+돌솥밥",
