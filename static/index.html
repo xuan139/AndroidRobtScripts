@@ -249,7 +249,7 @@
 
             try {
               // 發送到FastAPI
-              const response = await fetch('http://127.0.0.1:8000/upload-audio-base64', {
+              const response = await fetch('http://api4testing.com/upload-audio-base64', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -261,7 +261,7 @@
               console.log('上傳結果:', result);
 
               if (result.path) {
-                const audioElement = new Audio('http://127.0.0.1:8000/' + result.path);
+                const audioElement = new Audio('https://api4testing.com/' + result.path);
                 audioElement.play();
               }
 

@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import base64
 import os
+import uuid
 
 app = FastAPI()
 
@@ -50,7 +51,11 @@ async def upload_audio_base64(request: Request):
     # 保存到文件
     save_path = "static/uploads"
     os.makedirs(save_path, exist_ok=True)
-    file_path = os.path.join(save_path, "uploaded_audio.wav")
+
+    # 使用 uuid 生成唯一的文件名
+    file_name = f"{uuid.uuid4()}.wav"  # 生成一个唯一的文件名
+    file_path = os.path.join(save_path, file_name)
+    # file_path = os.path.join(save_path, "uploaded_audio.wav")
     
     with open(file_path, "wb") as f:
         f.write(audio_data)
