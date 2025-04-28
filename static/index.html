@@ -21,7 +21,7 @@
       <div class="col-md-3 mb-4">
         <div class="card p-3">
           <h5>Talk to me</h5>
-          <img src="https://raw.githubusercontent.com/xuan139/AndroidRobtScripts/main/images/logo.png" class="card-img-top restaurant-img" alt="restaurant">
+          <img src="../static/images/logo.png" class="card-img-top restaurant-img" alt="restaurant">
           <img src="https://cdn-icons-png.flaticon.com/512/2922/2922561.png" class="avatar mb-3" alt="Avatar" />
           <video id="camera" autoplay muted class="w-100 d-none"></video>
           <div class="progress mb-2">
@@ -43,16 +43,6 @@
           <img src="../static/images/face.png" class="card-img-top restaurant-img" alt="restaurant">
           <div class="card-body">
             <p><strong>地址：</strong>서울 송파구 석촌호수로 110</p>
-            <!-- <button class="btn btn-info w-100">share</button>
-            </p>
-            <a href="https://line.me/R/ti/p/@yourLineUserID" target="_blank" title="Chat with us on LINE">
-              <button class="icon-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-line" viewBox="0 0 16 16">
-                  <path d="M10.657 5.657a1 1 0 1 0-1.414-1.414L5 7.586 3.707 6.293a1 1 0 0 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4z"/>
-                </svg> 
-                 LINE
-              </button>
-            </a> -->
           </div>
         </div>
       </div>
@@ -259,7 +249,7 @@
 
             try {
               // 發送到FastAPI
-              const response = await fetch('http://api4testing.com/upload-audio-base64', {
+              const response = await fetch('http://127.0.0.1:8000/upload-audio-base64', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -269,6 +259,11 @@
 
               const result = await response.json();
               console.log('上傳結果:', result);
+
+              if (result.path) {
+                const audioElement = new Audio('http://127.0.0.1:8000/' + result.path);
+                audioElement.play();
+              }
 
               if (response.ok) {
                 console.log('音频成功上传到服务器');
@@ -282,7 +277,7 @@
             } catch (error) {
               console.error('發送音頻錯誤:', error);
               addMessage("Upload Error", "system");
-            }
+            }               
           };
         };
       }
