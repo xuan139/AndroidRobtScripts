@@ -9,6 +9,7 @@ import uuid
 app = FastAPI()
 
 # 加 CORS 中间件，解决 405 错误
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # 允许所有前端访问，开发方便
@@ -23,6 +24,7 @@ app.mount("/static/js", StaticFiles(directory="static/js"), name="js")
 app.mount("/static/css", StaticFiles(directory="static/css"), name="css")
 app.mount("/static/db", StaticFiles(directory="static/db"), name="db")
 app.mount("/static/images", StaticFiles(directory="static/images"), name="images")
+app.mount("/static/uploads", StaticFiles(directory="static/uploads"), name="uploads")
 
 @app.get("/", response_class=HTMLResponse)
 def read_index():
@@ -53,7 +55,7 @@ async def upload_audio_base64(request: Request):
     os.makedirs(save_path, exist_ok=True)
 
     # 使用 uuid 生成唯一的文件名
-    file_name = f"{uuid.uuid4()}.wav"  # 生成一个唯一的文件名
+    file_name = f"{uuid.uuid4()}.mp3"  # 生成一个唯一的文件名
     file_path = os.path.join(save_path, file_name)
     # file_path = os.path.join(save_path, "uploaded_audio.wav")
     
