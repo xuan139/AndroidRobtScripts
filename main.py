@@ -13,7 +13,6 @@ import openai
 # openai.api_key = "你的_openai_api_key"
 
 # openai.api_key = 
-client = openai.OpenAI(api_key="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")
 
 
 
