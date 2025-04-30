@@ -5,6 +5,17 @@ from fastapi.middleware.cors import CORSMiddleware
 import base64
 import os
 import uuid
+import openai
+
+
+
+# 设置 API 密钥
+# openai.api_key = "你的_openai_api_key"
+
+# openai.api_key = 
+client = openai.OpenAI(api_key="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")
+
+
 
 app = FastAPI()
 
@@ -67,4 +78,40 @@ async def upload_audio_base64(request: Request):
     with open(file_path, "wb") as f:
         f.write(audio_data)
 
-    return JSONResponse(content={"message": "Upload successful", "path": file_path})
+
+ # Whisper 转录
+   # Step 1: Whisper 识别语音
+    try:
+        with open(file_path, "rb") as audio_file:
+            transcript = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file,
+                response_format="text"
+            )
+
+        print(transcript)
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": f"Whisper error: {str(e)}"})
+
+    # ChatGPT 回复
+    chat_response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{
+            "role": "user",
+            "content": transcript
+        }]
+    )
+    gpt_reply = chat_response.choices[0].message.content
+
+    # TTS 语音合成
+    # tts = gTTS(text=gpt_reply, lang="zh")
+    # tts_path = os.path.join(RESPONSE_DIR, f"{file_id}.mp3")
+    # tts.save(tts_path)
+
+    # 返回识别文本和语音路径
+    return {
+        "transcript": transcript,
+        "gpt_reply": gpt_reply
+        # "tts_audio_url": f"/responses/{file_id}.mp3"
+    }
+
