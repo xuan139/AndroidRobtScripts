@@ -249,7 +249,12 @@
 
             try {
               // 發送到FastAPI
-              const response = await fetch('http://127.0.0.1:8000/upload-audio-base64', {
+              const apiBaseUrl = window.location.origin;
+              const endpoint = `${apiBaseUrl}/upload-audio-base64`;
+
+              console.log('endpoint',endpoint);
+
+              const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -262,7 +267,9 @@
 
               if (result.path) {
 
-                const audioElement = new Audio('http://127.0.0.1:8000' + result.path);
+                // const audioElement = new Audio('http://127.0.0.1:8000' + result.path);
+                const audioElement = new Audio(window.location.origin + result.path);
+
                 console.log('Audio URL:', audioElement);  // 调试输出音频文件的 URL
                 audioElement.play();
               }
@@ -270,8 +277,11 @@
               if (response.ok) {
                 console.log('音频成功上传到服务器');
                 clearMessages();
-                addMessage("Message Sent", "system");
+                // addMessage("Message Sent", "system");
+                addMessage(result.transcript, "user", true);  // 覆盖并显示用户语音转写
+                addMessage(result.gpt_reply, "system");       // 追加 GPT 回复
                 resetRecording();
+
               } else {
                 console.error('上傳失敗');
                 addMessage("Upload Failed", "system");

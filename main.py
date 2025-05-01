@@ -13,6 +13,7 @@ import openai
 # openai.api_key = "你的_openai_api_key"
 
 # openai.api_key = 
+client = openai.OpenAI(api_key="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")
 
 
 
@@ -88,7 +89,7 @@ async def upload_audio_base64(request: Request):
                 response_format="text"
             )
 
-        print(transcript)
+        print('transcript',transcript)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": f"Whisper error: {str(e)}"})
 
@@ -101,7 +102,7 @@ async def upload_audio_base64(request: Request):
         }]
     )
     gpt_reply = chat_response.choices[0].message.content
-
+    print('gpt_reply',gpt_reply)
     # TTS 语音合成
     # tts = gTTS(text=gpt_reply, lang="zh")
     # tts_path = os.path.join(RESPONSE_DIR, f"{file_id}.mp3")
