@@ -6,15 +6,18 @@ import base64
 import os
 import uuid
 import openai
+from dotenv import load_dotenv
 
 
+# 加载 .env 文件
+load_dotenv()
 
-# 设置 API 密钥
-# openai.api_key = "你的_openai_api_key"
+# 获取 API key
+api_key = os.getenv("OPENAI_API_KEY")
 
-# openai.api_key = 
-client = openai.OpenAI(api_key="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")
-
+print (api_key)
+# 创建 openai 客户端
+client = openai.OpenAI(api_key=api_key)
 
 
 app = FastAPI()
