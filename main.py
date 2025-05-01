@@ -15,7 +15,7 @@ load_dotenv()
 # 获取 API key
 api_key = os.getenv("OPENAI_API_KEY")
 
-print (api_key)
+# print (api_key)
 # 创建 openai 客户端
 client = openai.OpenAI(api_key=api_key)
 
