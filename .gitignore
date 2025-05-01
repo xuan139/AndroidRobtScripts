@@ -1,1 +1,31 @@
 .env
+# Ignore .env files (store environment variables locally)
+.env
+
+# Ignore Python bytecode files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore log files
+*.log
+
+# Ignore virtual environment directories
+venv/
+env/
+.venv/
+.virtualenv/
+
+# Ignore system files (macOS, Linux)
+.DS_Store
+Thumbs.db
+
+# Ignore IDE configuration files (e.g., VS Code, JetBrains)
+.vscode/
+.idea/
+
+# Ignore any other temporary or build files
+*.tmp
+*.bak
+*.swp
+
