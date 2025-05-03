@@ -281,12 +281,15 @@
                 addMessage(result.transcript, "user", true);  // 覆盖并显示用户语音转写
                 addMessage(result.gpt_reply, "system");       // 追加 GPT 回复
 
+                console.log("TTS 音频地址:", result.tts_audio_url);
 
-                    // 播放音频
-                // const audio = new Audio("http://localhost:8000/responses/audio.mp3") + new Date().getTime();;  // 设置音频文件的路径
-                // 添加时间戳来防止缓存
-                const audioUrl = "http://localhost:8000/responses/audio.mp3?" + new Date().getTime();
+                // 添加时间戳防缓存
+                // const audioUrl = result.tts_audio_url + "?t=" + new Date().getTime();
+
+
+                const audioUrl = result.tts_audio_url + "?t=" + new Date().getTime();
                 const audio = new Audio(audioUrl);
+
                 audio.play().then(() => {
                     console.log("音频播放成功");
                 }).catch((error) => {

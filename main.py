@@ -130,22 +130,28 @@ async def upload_audio_base64(request: Request):
 
     chat_response_tts = client.audio.speech.create(
         model="tts-1",  # 使用最新的 TTS 模型
-        voice="onyx",  # 指定语音类型
+        voice="nova",  # 指定语音类型
         input=gpt_reply  # GPT 的文本回复作为输入
     )
 
         # 获取 TTS 合成的二进制音频内容
     audio_data = chat_response_tts.content  # 获取二进制内容
 
-    # 保存音频文件到目标路径
+    # 如果文件已存在，则先删除
+    if os.path.exists(audio_file_path):
+        os.remove(audio_file_path)
+
+    # 然后再保存新音频文件
     with open(audio_file_path, "wb") as f:
         f.write(audio_data)
 
-    # 生成音频文件的 URL 或返回音频文件路径
-
     
-    audio_url = f"127.0.0.1:8000/responses/{os.path.basename(audio_file_path)}"  # 获取文件名并生成 URL
-    print('Generated audio URL:', audio_url)
+    # audio_url = f"127.0.0.1:8000/responses/{os.path.basename(audio_file_path)}"  # 获取文件名并生成 URL
+    # print('Generated audio URL:', audio_url)
+
+
+    audio_file_path = "responses/audio.mp3"
+    audio_url = f"http://127.0.0.1:8000/responses/{os.path.basename(audio_file_path)}"
 
     # 返回识别文本和语音路径
     return {
