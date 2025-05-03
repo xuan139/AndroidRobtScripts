@@ -26,38 +26,39 @@ let currentLanguage = 'ko'; // 默认韩语
   }
 
 
-  function renderMenu(items) {
-    const menuSection = document.getElementById('menuContainer');
-    menuSection.innerHTML = '';
+    function renderMenu(items) {
+      const menuSection = document.getElementById('menuContainer');
+      menuSection.innerHTML = '';
 
-    items.forEach((item, index) => {
-      const name = item[`name_${currentLanguage}`] || item.name_ko;
-      const description = item[`description_${currentLanguage}`] || '';
-      const id = item.id || `00${index + 1}`; // 若無 id 欄則自動生成
+      items.forEach((item, index) => {
+        const name = item[`name_${currentLanguage}`] || item.name_ko;
+        const id = item.id || `00${index + 1}`;
+        const existing = cart.find(ci => ci.id === id);
+        const quantity = existing ? existing.quantity : 0;
 
-      const cardHtml = `
-        <div class="col-md-4 mb-4">
-          <div class="card h-100 shadow-sm">
-            <img src="${item.image}" class="card-img-top img-fluid" alt="dish">
-            <div class="card-body">
-              <h5 class="text-muted">${id}</h5>
-              <h5 class="card-title">${name}</h5>
-              <p class="card-text">${description}</p>
-              <p><strong>₩${item.price}</strong></p>
-            </div>
-            <div class="card-footer d-flex justify-content-between align-items-center">
-              <div>
-              <button class="btn btn-sm btn-outline-secondary" onclick="decreaseQuantity('${id}')">-</button>
-              <span id="quantity-${id}" class="mx-2">0</span>
-              <button class="btn btn-sm btn-outline-secondary" onclick="increaseQuantity('${id}')">+</button>
+        const cardHtml = `
+          <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+              <img src="${item.image}" class="card-img-top" alt="dish">
+              <div class="card-body">
+                <h5 class="text-muted">${id}</h5>
+                <h5 class="card-title">${name}</h5>
+                <p><strong>₩${item.price}</strong></p>
+              </div>
+              <div class="card-footer d-flex justify-content-between align-items-center">
+                <div>
+                  <button class="btn btn-sm btn-outline-secondary" onclick="decreaseQuantity('${id}')">-</button>
+                  <span id="quantity-${id}" class="mx-2">${quantity}</span>
+                  <button class="btn btn-sm btn-outline-secondary" onclick="increaseQuantity('${id}')">+</button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      `;
-      menuSection.innerHTML += cardHtml;
-    });
-  }
+        `;
+
+        menuSection.innerHTML += cardHtml;
+      });
+    }
 
 
 
@@ -92,7 +93,8 @@ let currentLanguage = 'ko'; // 默认韩语
     }
   
 
-
+    
+    
     function renderCartSummary() {
       const cartItemsContainer = document.getElementById('cartItems');
       const cartTotalElement = document.getElementById('subtotal');
@@ -138,9 +140,8 @@ let currentLanguage = 'ko'; // 默认韩语
     // 清空购物车数组
     cart = [];
 
-    // 重置所有数量显示为 0
-    menuItems.forEach((_, index) => {
-      const qtyEl = document.getElementById(`quantity-${index}`);
+    menuItems.forEach(item => {
+      const qtyEl = document.getElementById(`quantity-${item.id}`);
       if (qtyEl) qtyEl.innerText = "0";
     });
 

@@ -202,7 +202,7 @@
             }
   
             const average = sum / bufferLength;
-            if (average > 10) { // 如果音量超过阈值
+            if (average > 10) { // 这是“音量阈值判断”。当音频的平均音量超过 10 时，认为用户在讲话。
               lastSpeechTime = Date.now(); // 更新最后录音时间
               updateVolumeBar(average);
               if (speechDuration < 1) {
@@ -229,6 +229,23 @@
       saveAs(file);  // 使用 FileSaver.js 库来保存文件
     }
   
+    function applyGptReplyToCart(orderList) {
+      orderList.forEach(orderItem => {
+        const { id, quantity } = orderItem;
+        const menuItem = menuItems.find(item => item.id === id);
+        if (!menuItem) return;
+
+        const existing = cart.find(ci => ci.id === id);
+        if (existing) {
+          existing.quantity = parseInt(quantity); // 覆盖现有数量
+        } else {
+          cart.push({ id, name: menuItem.name_ko, price: menuItem.price, quantity: parseInt(quantity) });
+        }
+      });
+
+      renderMenu(menuItems);
+      renderCartSummary();
+    }
     // 发送消息并停止录音
     async function sendMessage() {
       if (speechDuration > 1) {
@@ -265,21 +282,29 @@
               const result = await response.json();
               console.log('上傳結果:', result);
 
-              if (result.path) {
+              // if (result.path) {
 
-                // const audioElement = new Audio('http://127.0.0.1:8000' + result.path);
-                const audioElement = new Audio(window.location.origin + result.path);
+              //   // const audioElement = new Audio('http://127.0.0.1:8000' + result.path);
+              //   const audioElement = new Audio(window.location.origin + result.path);
 
-                console.log('Audio URL:', audioElement);  // 调试输出音频文件的 URL
-                audioElement.play();
-              }
+              //   console.log('Audio URL:', audioElement);  // 调试输出音频文件的 URL
+              //   audioElement.play();
+              // }
 
               if (response.ok) {
                 console.log('音频成功上传到服务器');
                 clearMessages();
                 // addMessage("Message Sent", "system");
                 addMessage(result.transcript, "user", true);  // 覆盖并显示用户语音转写
-                addMessage(result.gpt_reply, "system");       // 追加 GPT 回复
+                // addMessage(result.gpt_reply, "system");       // 追加 GPT 回复
+
+                if (result.gpt_reply && Array.isArray(result.gpt_reply.order)) {
+                  console.log("检测到有效的订单数据：", result.gpt_reply.order); // 打印订单数据
+                  applyGptReplyToCart(result.gpt_reply.order); // ✅ 推荐只写这一行
+                } else {
+                  console.log("未检测到有效的订单数据。");
+                }
+
 
                 console.log("TTS 音频地址:", result.tts_audio_url);
 
@@ -290,6 +315,7 @@
                 const audioUrl = result.tts_audio_url + "?t=" + new Date().getTime();
                 const audio = new Audio(audioUrl);
 
+                updateStatus("Playing...");
                 audio.play().then(() => {
                     console.log("音频播放成功");
                 }).catch((error) => {
@@ -297,7 +323,6 @@
                 });
 
                 resetRecording();
-
               } else {
                 console.error('上傳失敗');
                 addMessage("Upload Failed", "system");

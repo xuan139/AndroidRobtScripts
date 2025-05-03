@@ -121,6 +121,7 @@ User Prompt（顧客資訊）
   "order": [
     {
       "item": "",
+      "id": "",
       "quantity": "",
       "unit": "",
       "customization_options": []

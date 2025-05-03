@@ -7,6 +7,7 @@ import os
 import uuid
 import openai
 from dotenv import load_dotenv
+import json
 
 
 # 加载 .env 文件
@@ -131,7 +132,7 @@ async def upload_audio_base64(request: Request):
     chat_response_tts = client.audio.speech.create(
         model="tts-1",  # 使用最新的 TTS 模型
         voice="nova",  # 指定语音类型
-        input=gpt_reply  # GPT 的文本回复作为输入
+        input=gpt_reply # GPT 的文本回复作为输入
     )
 
         # 获取 TTS 合成的二进制音频内容
@@ -154,9 +155,16 @@ async def upload_audio_base64(request: Request):
     audio_url = f"http://127.0.0.1:8000/responses/{os.path.basename(audio_file_path)}"
 
     # 返回识别文本和语音路径
+
+    # 如果 gpt_reply 是有效的 JSON 字符串
+    try:
+        gpt_reply_json = json.loads(gpt_reply)  # 将字符串解析为 JSON 对象
+    except json.JSONDecodeError:
+        gpt_reply_json = None  # 如果解析失败，则设为 None
+
     return {
         "transcript": transcript,
-        "gpt_reply": gpt_reply,
+        "gpt_reply": gpt_reply_json,
         "tts_audio_url": audio_url
     }
 
