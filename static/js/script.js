@@ -33,21 +33,23 @@ let currentLanguage = 'ko'; // 默认韩语
     items.forEach((item, index) => {
       const name = item[`name_${currentLanguage}`] || item.name_ko;
       const description = item[`description_${currentLanguage}`] || '';
+      const id = item.id || `00${index + 1}`; // 若無 id 欄則自動生成
 
       const cardHtml = `
         <div class="col-md-4 mb-4">
           <div class="card h-100 shadow-sm">
             <img src="${item.image}" class="card-img-top img-fluid" alt="dish">
             <div class="card-body">
+              <h5 class="text-muted">${id}</h5>
               <h5 class="card-title">${name}</h5>
               <p class="card-text">${description}</p>
               <p><strong>₩${item.price}</strong></p>
             </div>
             <div class="card-footer d-flex justify-content-between align-items-center">
               <div>
-                <button class="btn btn-sm btn-outline-secondary" onclick="decreaseQuantity(${index})">-</button>
-                <span id="quantity-${index}" class="mx-2">0</span>
-                <button class="btn btn-sm btn-outline-secondary" onclick="increaseQuantity(${index})">+</button>
+              <button class="btn btn-sm btn-outline-secondary" onclick="decreaseQuantity('${id}')">-</button>
+              <span id="quantity-${id}" class="mx-2">0</span>
+              <button class="btn btn-sm btn-outline-secondary" onclick="increaseQuantity('${id}')">+</button>
               </div>
             </div>
           </div>
@@ -57,34 +59,38 @@ let currentLanguage = 'ko'; // 默认韩语
     });
   }
 
-    function increaseQuantity(index) {
-      const item = menuItems[index];
-      const existing = cart.find(ci => ci.index === index);
 
+
+    function increaseQuantity(id) {
+      const item = menuItems.find(it => it.id === id);
+      if (!item) return;
+    
+      const existing = cart.find(ci => ci.id === id);
+    
       if (existing) {
         existing.quantity++;
       } else {
-        cart.push({ index, name: item.name_ko, price: item.price, quantity: 1 });
+        cart.push({ id, name: item.name_ko, price: item.price, quantity: 1 });
       }
-
-      document.getElementById(`quantity-${index}`).textContent = existing ? existing.quantity : 1;
+    
+      document.getElementById(`quantity-${id}`).textContent = existing ? existing.quantity : 1;
       renderCartSummary();
     }
-
-    function decreaseQuantity(index) {
-      const existing = cart.find(ci => ci.index === index);
-
+    
+    function decreaseQuantity(id) {
+      const existing = cart.find(ci => ci.id === id);
       if (existing) {
         existing.quantity--;
         if (existing.quantity <= 0) {
-          cart = cart.filter(ci => ci.index !== index);
-          document.getElementById(`quantity-${index}`).textContent = 0;
+          cart = cart.filter(ci => ci.id !== id);
+          document.getElementById(`quantity-${id}`).textContent = 0;
         } else {
-          document.getElementById(`quantity-${index}`).textContent = existing.quantity;
+          document.getElementById(`quantity-${id}`).textContent = existing.quantity;
         }
-        renderCartSummary();
       }
+      renderCartSummary();
     }
+  
 
 
     function renderCartSummary() {
@@ -100,7 +106,7 @@ let currentLanguage = 'ko'; // 默认韩语
 
         const li = document.createElement('li');
         li.className = 'list-group-item d-flex justify-content-between align-items-center';
-        li.innerHTML = `${item.name} x ${item.quantity} <span>₩${itemTotal}</span>`;
+        li.innerHTML = `${item.id} : ${item.name} x ${item.quantity} <span>₩${itemTotal}</span>`;
         cartItemsContainer.appendChild(li);
       });
 
@@ -180,7 +186,7 @@ let currentLanguage = 'ko'; // 默认韩语
     // 添加每个菜品
     cart.forEach(item => {
       const itemTotal = item.price * item.quantity;
-      receiptContent += `${item.name} x ${item.quantity} = ₩${itemTotal}\n`;
+      receiptContent += `${item.id}:${item.name} x ${item.quantity} = ₩${itemTotal}\n`;
     });
 
     // 总计

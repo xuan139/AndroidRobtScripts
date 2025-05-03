@@ -38,6 +38,7 @@ app.mount("/static/css", StaticFiles(directory="static/css"), name="css")
 app.mount("/static/db", StaticFiles(directory="static/db"), name="db")
 app.mount("/static/images", StaticFiles(directory="static/images"), name="images")
 app.mount("/static/uploads", StaticFiles(directory="static/uploads"), name="uploads")
+app.mount("/responses", StaticFiles(directory="responses"), name="responses")
 
 @app.get("/", response_class=HTMLResponse)
 def read_index():
@@ -97,24 +98,61 @@ async def upload_audio_base64(request: Request):
         return JSONResponse(status_code=500, content={"error": f"Whisper error: {str(e)}"})
 
     # ChatGPT 回复
+
+
+    # 读取 system prompt 文件内容
+    with open("system_prompt.txt", "r", encoding="utf-8") as f:
+        system_prompt = f.read()
+
+    # 构建消息列表
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": transcript}
+    ]
+
     chat_response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{
-            "role": "user",
-            "content": transcript
-        }]
+        model="gpt-4.1-nano",
+        messages=messages
     )
     gpt_reply = chat_response.choices[0].message.content
     print('gpt_reply',gpt_reply)
     # TTS 语音合成
-    # tts = gTTS(text=gpt_reply, lang="zh")
-    # tts_path = os.path.join(RESPONSE_DIR, f"{file_id}.mp3")
-    # tts.save(tts_path)
+    # 进行 TTS 语音合成
+
+
+    # 设置音频文件保存路径
+    save_directory = "./responses"  # 使用相对路径保存到当前项目的 responses 文件夹
+    audio_file_path = os.path.join(save_directory, "audio.mp3")  # 设置完整的文件路径
+
+    # 确保目标目录存在
+    os.makedirs(save_directory, exist_ok=True)  # 如果目录不存在，创建该目录
+
+
+    chat_response_tts = client.audio.speech.create(
+        model="tts-1",  # 使用最新的 TTS 模型
+        voice="onyx",  # 指定语音类型
+        input=gpt_reply  # GPT 的文本回复作为输入
+    )
+
+        # 获取 TTS 合成的二进制音频内容
+    audio_data = chat_response_tts.content  # 获取二进制内容
+
+    # 保存音频文件到目标路径
+    with open(audio_file_path, "wb") as f:
+        f.write(audio_data)
+
+    # 生成音频文件的 URL 或返回音频文件路径
+
+    
+    audio_url = f"127.0.0.1:8000/responses/{os.path.basename(audio_file_path)}"  # 获取文件名并生成 URL
+    print('Generated audio URL:', audio_url)
 
     # 返回识别文本和语音路径
     return {
         "transcript": transcript,
-        "gpt_reply": gpt_reply
-        # "tts_audio_url": f"/responses/{file_id}.mp3"
+        "gpt_reply": gpt_reply,
+        "tts_audio_url": audio_url
     }
+
+
 

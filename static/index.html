@@ -29,7 +29,7 @@
           </div>
           <!-- <div id="volumeLevel">Volume: 0 (Threshold: 10)</div> -->
           <div class="d-flex align-items-center mb-2">
-            <div id="volumeLevel" class="me-2">Volume: 0 (Threshold: 20)</div>
+            <div id="volumeLevel" class="me-2">Volume: 0 (Threshold: 10)</div>
             <!-- <button id="threshold-dec" class="btn btn-secondary btn-sm me-1">-</button>
             <button id="threshold-inc" class="btn btn-secondary btn-sm">+</button> -->
           </div>
@@ -49,7 +49,7 @@
 
 
       <!-- 弹出新网页的跳转按钮 -->
-      <a href="/backend" target="_blank" class="arrow-button" title="Open Backend in New Tab"></a>
+      <a href="../static/backend.html" target="_blank" class="arrow-button" title="Open Backend in New Tab"></a>
       <div class="col-md-6 mb-4">
         <div class="card p-3">
           <select id="languageSelector" class="form-select w-auto mb-3">
@@ -280,15 +280,30 @@
                 // addMessage("Message Sent", "system");
                 addMessage(result.transcript, "user", true);  // 覆盖并显示用户语音转写
                 addMessage(result.gpt_reply, "system");       // 追加 GPT 回复
+
+
+                    // 播放音频
+                // const audio = new Audio("http://localhost:8000/responses/audio.mp3") + new Date().getTime();;  // 设置音频文件的路径
+                // 添加时间戳来防止缓存
+                const audioUrl = "http://localhost:8000/responses/audio.mp3?" + new Date().getTime();
+                const audio = new Audio(audioUrl);
+                audio.play().then(() => {
+                    console.log("音频播放成功");
+                }).catch((error) => {
+                    console.error("音频播放失败", error);
+                });
+
                 resetRecording();
 
               } else {
                 console.error('上傳失敗');
                 addMessage("Upload Failed", "system");
+                resetRecording();
               }
             } catch (error) {
               console.error('發送音頻錯誤:', error);
               addMessage("Upload Error", "system");
+              resetRecording();
             }               
           };
         };
