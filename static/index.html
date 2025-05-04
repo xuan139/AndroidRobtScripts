@@ -229,7 +229,16 @@
       saveAs(file);  // 使用 FileSaver.js 库来保存文件
     }
   
+    //修改order，或清空
     function applyGptReplyToCart(orderList) {
+      //清空
+      if (!Array.isArray(orderList) || orderList.length === 0) {
+        cart.length = 0; // 清空购物车
+        renderMenu(menuItems);
+        renderCartSummary();
+        return;
+      }
+      //修改份数
       orderList.forEach(orderItem => {
         const { id, quantity } = orderItem;
         const menuItem = menuItems.find(item => item.id === id);
@@ -246,6 +255,7 @@
       renderMenu(menuItems);
       renderCartSummary();
     }
+
     // 发送消息并停止录音
     async function sendMessage() {
       if (speechDuration > 1) {
@@ -282,15 +292,6 @@
               const result = await response.json();
               console.log('上傳結果:', result);
 
-              // if (result.path) {
-
-              //   // const audioElement = new Audio('http://127.0.0.1:8000' + result.path);
-              //   const audioElement = new Audio(window.location.origin + result.path);
-
-              //   console.log('Audio URL:', audioElement);  // 调试输出音频文件的 URL
-              //   audioElement.play();
-              // }
-
               if (response.ok) {
                 console.log('音频成功上传到服务器');
                 clearMessages();
@@ -298,6 +299,7 @@
                 addMessage(result.transcript, "user", true);  // 覆盖并显示用户语音转写
                 // addMessage(result.gpt_reply, "system");       // 追加 GPT 回复
 
+                //update UI
                 if (result.gpt_reply && Array.isArray(result.gpt_reply.order)) {
                   console.log("检测到有效的订单数据：", result.gpt_reply.order); // 打印订单数据
                   applyGptReplyToCart(result.gpt_reply.order); // ✅ 推荐只写这一行
@@ -307,9 +309,6 @@
 
 
                 console.log("TTS 音频地址:", result.tts_audio_url);
-
-                // 添加时间戳防缓存
-                // const audioUrl = result.tts_audio_url + "?t=" + new Date().getTime();
 
 
                 const audioUrl = result.tts_audio_url + "?t=" + new Date().getTime();
@@ -321,7 +320,7 @@
                 }).catch((error) => {
                     console.error("音频播放失败", error);
                 });
-
+                //播放中，应该不影响继续说话
                 resetRecording();
               } else {
                 console.error('上傳失敗');
