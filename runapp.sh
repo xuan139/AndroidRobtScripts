@@ -7,10 +7,10 @@ HOST="0.0.0.0"
 PORT="8000"
 LOG_FILE="$HOME/server.log"
 
-echo "⚠️ 强制重置本地并拉取最新代码..."
-git reset --hard HEAD
-git clean -fd
-git pull origin main
+echo "我要强制重置本地并拉取最新代码..."
+sudo git reset --hard HEAD
+sudo git clean -fd
+sudo git pull origin main
 
 # 创建虚拟环境（如果不存在）
 if [ ! -d "$VENV_PATH" ]; then
