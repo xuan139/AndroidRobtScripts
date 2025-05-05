@@ -310,8 +310,6 @@
                 console.log(result.transcript.language);
                 handleTranscriptResult(result);
 
-                
-
                 // const endpoint = `${apiBaseUrl}/upload-audio-base64`;
                 // const audioUrl = result.tts_audio_url + "?t=" + new Date().getTime();
                 const audioUrl = `${apiBaseUrl}${result.tts_audio_url}?t=${new Date().getTime()}`;

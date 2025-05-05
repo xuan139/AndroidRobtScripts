@@ -21,7 +21,7 @@ print (api_key)
 # 创建 openai 客户端
 client = openai.OpenAI(api_key=api_key)
 
-
+last_gpt_reply = None
 app = FastAPI()
 
 # 加 CORS 中间件，解决 405 错误
@@ -56,6 +56,10 @@ def read_backend():
 # 上传录音 base64
 @app.post("/upload-audio-base64")
 async def upload_audio_base64(request: Request):
+    global last_gpt_reply  # <== 这里声明用全局的
+        # 如果 last_gpt_reply 为 None，使用空字符串
+    last_gpt_reply = last_gpt_reply or ""
+
     data = await request.json()
     base64_audio = data.get("file")
 
@@ -106,32 +110,31 @@ async def upload_audio_base64(request: Request):
             )
 
         print("语言：", transcript.language)
-        print("文本：", )
+        print("文本：", transcript.text)
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": f"Whisper error: {str(e)}"})
 
-    # ChatGPT 回复
-
-
-    # transcribed_text = transcript.text if hasattr(transcript, "text") else str(transcript)
-
     # 读取 system prompt 文件内容
     with open("system_prompt.txt", "r", encoding="utf-8") as f:
         system_prompt = f.read()
-
+    print('last_gpt_reply',last_gpt_reply)
     # 构建消息列表
     messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content":  transcript.text}
+        # {"role": "user", "content":  transcript.text+last_gpt_reply}
+        {"role": "user", "content":  transcript.text},
     ]
 
     chat_response = client.chat.completions.create(
         model="gpt-4.1-nano",
         messages=messages
     )
+    
     gpt_reply = chat_response.choices[0].message.content
+    last_gpt_reply = gpt_reply
     print('gpt_reply',gpt_reply)
+
     # TTS 语音合成
     # 进行 TTS 语音合成
 
@@ -143,9 +146,14 @@ async def upload_audio_base64(request: Request):
     # 确保目标目录存在
     os.makedirs(save_directory, exist_ok=True)  # 如果目录不存在，创建该目录
 
-
     gpt_reply_dict = json.loads(gpt_reply)
-    reply_text = gpt_reply_dict["responses"][0]["reply"]
+    
+    reply_text  = gpt_reply_dict["responses"][0]["reply"]
+    reply_order = gpt_reply_dict["order"]
+    reply_user_preference = gpt_reply_dict["user_preference"]
+    reply_note = gpt_reply_dict["note"]
+
+
     chat_response_tts = client.audio.speech.create(
         model="tts-1",  # 使用最新的 TTS 模型
         voice="nova",  # 指定语音类型
@@ -181,6 +189,7 @@ async def upload_audio_base64(request: Request):
         gpt_reply_json = json.loads(gpt_reply)  # 将字符串解析为 JSON 对象
     except json.JSONDecodeError:
         gpt_reply_json = None  # 如果解析失败，则设为 None
+
 
     return {
         "transcript": transcript,
