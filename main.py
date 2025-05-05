@@ -8,6 +8,7 @@ import uuid
 import openai
 from dotenv import load_dotenv
 import json
+from openai import OpenAI
 
 
 # 加载 .env 文件
@@ -87,19 +88,33 @@ async def upload_audio_base64(request: Request):
  # Whisper 转录
    # Step 1: Whisper 识别语音
     try:
+        # with open(file_path, "rb") as audio_file:
+        #     transcript = openai.Audio.transcribe(
+        #         model="whisper-1",
+        #         file=audio_file,
+        #         response_format="verbose_json"  # 注意不是 "json"
+        #     )
+
+        # print("语言：", transcript["language"])
+        # print("文本：", transcript["text"])
+
         with open(file_path, "rb") as audio_file:
             transcript = client.audio.transcriptions.create(
                 model="whisper-1",
                 file=audio_file,
-                response_format="text"
+                response_format="verbose_json"
             )
 
-        print('transcript',transcript)
+        print("语言：", transcript.language)
+        print("文本：", )
+
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": f"Whisper error: {str(e)}"})
 
     # ChatGPT 回复
 
+
+    # transcribed_text = transcript.text if hasattr(transcript, "text") else str(transcript)
 
     # 读取 system prompt 文件内容
     with open("system_prompt.txt", "r", encoding="utf-8") as f:
@@ -108,7 +123,7 @@ async def upload_audio_base64(request: Request):
     # 构建消息列表
     messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": transcript}
+        {"role": "user", "content":  transcript.text}
     ]
 
     chat_response = client.chat.completions.create(

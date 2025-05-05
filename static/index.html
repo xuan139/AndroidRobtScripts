@@ -296,10 +296,10 @@
                 console.log('音频成功上传到服务器');
                 clearMessages();
                 // addMessage("Message Sent", "system");
-                addMessage(result.transcript, "user", true);  // 覆盖并显示用户语音转写
+                addMessage(result.transcript.text, "user", true);  // 覆盖并显示用户语音转写
                 // addMessage(result.gpt_reply, "system");       // 追加 GPT 回复
 
-                //update UI
+                //update Menu UI
                 if (result.gpt_reply && Array.isArray(result.gpt_reply.order)) {
                   console.log("检测到有效的订单数据：", result.gpt_reply.order); // 打印订单数据
                   applyGptReplyToCart(result.gpt_reply.order); // ✅ 推荐只写这一行
@@ -307,8 +307,10 @@
                   console.log("未检测到有效的订单数据。");
                 }
 
+                console.log(result.transcript.language);
+                handleTranscriptResult(result);
 
-
+                
 
                 // const endpoint = `${apiBaseUrl}/upload-audio-base64`;
                 // const audioUrl = result.tts_audio_url + "?t=" + new Date().getTime();
@@ -339,6 +341,25 @@
       }
     }
 
+
+    function handleTranscriptResult(result) {
+      const langMap = {
+        korean: 'ko',
+        chinese: 'zh',
+        english: 'en',
+        japanese: 'ja'
+      };
+
+      const detectedLang = result.transcript.language;
+      const langCode = langMap[detectedLang];
+
+      if (langCode) {
+        document.getElementById('languageSelector').value = langCode;
+        updateMenuLanguage(langCode);  // 自动切换菜单
+      } else {
+        console.warn('Unsupported language:', detectedLang);
+      }
+    }
   
     // 更新音量条
     function updateVolumeBar(volume) {
