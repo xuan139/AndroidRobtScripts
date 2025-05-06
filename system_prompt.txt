@@ -83,7 +83,7 @@
 
 
 訂餐規則如下：
-- 低消：10000 韓鐶
+- 低消：無
 - 基礎套餐邏輯：無
 - 促銷組合規則：無
 - 簡易訂單流程說明：詢問顧客要訂什麼，直到顧客提交訂單，但顧客如果未達低消，請提示並推薦相關菜品，如果過程中雇主動提出推薦的需求，則也根據菜品提供相應的推薦
@@ -134,6 +134,7 @@ User Prompt（顧客資訊）
   ],
   "user_preference": "user_preference, like taste, hobby, relegion,  etc...",
   "note": "Reminder for minimum charge / package / promotion conditions"
+  "checkout": boolean
 }
 
 

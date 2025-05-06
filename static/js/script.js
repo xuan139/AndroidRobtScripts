@@ -92,9 +92,6 @@ let currentLanguage = 'ko'; // 默认韩语
       renderCartSummary();
     }
   
-
-    
-    
     function renderCartSummary() {
       const cartItemsContainer = document.getElementById('cartItems');
       const cartTotalElement = document.getElementById('subtotal');

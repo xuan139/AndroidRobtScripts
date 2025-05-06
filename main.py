@@ -62,6 +62,36 @@ async def upload_audio_base64(request: Request):
         # 如果 last_gpt_reply 为 None，使用空字符串
     last_gpt_reply = last_gpt_reply or ""
     last_transcript = last_transcript or ""
+
+    # ---- 安全读取 last_transcript ----
+    if last_transcript and hasattr(last_transcript, 'text'):
+        try:
+            print("上一次语言：", getattr(last_transcript, 'language', '未知'))
+            print("上一次文本：", last_transcript.text)
+        except Exception as e:
+            print("读取 last_transcript 出错：", e)
+
+    # ---- 安全解析 last_gpt_reply ----
+    last_reply_text = "（无）"
+    last_reply_order = "（无）"
+    last_reply_user_preference = "（无）"
+    last_reply_note = "（无）"
+
+    if last_gpt_reply:
+        try:
+            last_gpt_reply_dict = json.loads(last_gpt_reply)
+            last_reply_text = last_gpt_reply_dict.get("responses", [{}])[0].get("reply", "（无）")
+            last_reply_order = last_gpt_reply_dict.get("order", "（无）")
+            last_reply_user_preference = last_gpt_reply_dict.get("user_preference", "（无）")
+            last_reply_note = last_gpt_reply_dict.get("note", "（无）")
+            print('last_gpt_reply') 
+            print("回复文本:", last_reply_text)
+            print("订单:", last_reply_order)
+            print("用户偏好:", last_reply_user_preference)
+            print("备注:", last_reply_note)
+        except Exception as e:
+            print("解析 last_gpt_reply 出错：", e)
+
     data = await request.json()
     base64_audio = data.get("file")
 
@@ -91,9 +121,7 @@ async def upload_audio_base64(request: Request):
         f.write(audio_data)
 
     try:
-        if last_transcript:
-            print("上一次语言：", last_transcript.language)
-            print("上一次文本：", last_transcript.text)
+
         with open(file_path, "rb") as audio_file:
             transcript = client.audio.transcriptions.create(
                 model="whisper-1",
@@ -107,24 +135,16 @@ async def upload_audio_base64(request: Request):
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": f"Whisper error: {str(e)}"})
 
-
-    print('last_gpt_reply',last_gpt_reply) 
-    if last_gpt_reply:
-        last_gpt_reply_dict = json.loads(last_gpt_reply)
-        
-        last_reply_text  = last_gpt_reply_dict["responses"][0]["reply"]
-        last_reply_order = last_gpt_reply_dict["order"]
-        last_reply_user_preference = last_gpt_reply_dict["user_preference"]
-        last_reply_note = last_gpt_reply_dict["note"]
-        # last_transcript = None 
     # 读取 system prompt 文件内容
     with open("system_prompt.txt", "r", encoding="utf-8") as f:
         system_prompt = f.read()
     # 构建消息列表
+    # last_gpt_reply_dict = json.loads(last_gpt_reply)
     messages = [
         {"role": "system", "content": system_prompt},
-        # {"role": "user", "content":  transcript.text+last_gpt_reply}
-        {"role": "user", "content":  transcript.text},
+        {"role": "assistant", "content": getattr(last_transcript, "text", str(last_transcript))},
+        {"role": "assistant", "content": last_gpt_reply},
+        {"role": "user", "content": transcript.text}
     ]
 
     chat_response = client.chat.completions.create(
@@ -174,7 +194,7 @@ async def upload_audio_base64(request: Request):
 
     last_gpt_reply = gpt_reply
     last_transcript = transcript
-    
+
     return {
         "transcript": transcript,
         "gpt_reply": gpt_reply_json,

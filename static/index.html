@@ -300,18 +300,36 @@
                 // addMessage(result.gpt_reply, "system");       // 追加 GPT 回复
 
                 //update Menu UI
+                // if (result.gpt_reply && Array.isArray(result.gpt_reply.order)) {
+                //   console.log("检测到有效的订单数据：", result.gpt_reply.order); // 打印订单数据
+                //   applyGptReplyToCart(result.gpt_reply.order); // ✅ 推荐只写这一行
+
+                // } else {
+                //   console.log("未检测到有效的订单数据。");
+                //   cancelOrder()
+                // }
+
                 if (result.gpt_reply && Array.isArray(result.gpt_reply.order)) {
-                  console.log("检测到有效的订单数据：", result.gpt_reply.order); // 打印订单数据
-                  applyGptReplyToCart(result.gpt_reply.order); // ✅ 推荐只写这一行
+                  if (result.gpt_reply.order.length === 0) {
+                    console.log("订单数据为空数组。");
+                    cancelOrder()
+                    // 在这里处理空订单的情况
+                  } else {
+                    console.log("检测到有效的订单数据：", result.gpt_reply.order);
+                    applyGptReplyToCart(result.gpt_reply.order); // ✅ 推荐只写这一行
+                  }
                 } else {
                   console.log("未检测到有效的订单数据。");
                 }
 
-                console.log(result.transcript.language);
+                console.log("language",result.transcript.language);
                 handleTranscriptResult(result);
 
-                // const endpoint = `${apiBaseUrl}/upload-audio-base64`;
-                // const audioUrl = result.tts_audio_url + "?t=" + new Date().getTime();
+
+                console.log("checkout",result.gpt_reply.checkout);
+                if(result.gpt_reply.checkout)
+                  showReceipt()
+
                 const audioUrl = `${apiBaseUrl}${result.tts_audio_url}?t=${new Date().getTime()}`;
                 console.log("TTS 音频地址:", audioUrl);
                 const audio = new Audio(audioUrl);
