@@ -22,6 +22,7 @@ print (api_key)
 client = openai.OpenAI(api_key=api_key)
 
 last_gpt_reply = None
+last_transcript = None
 app = FastAPI()
 
 # 加 CORS 中间件，解决 405 错误
@@ -57,9 +58,10 @@ def read_backend():
 @app.post("/upload-audio-base64")
 async def upload_audio_base64(request: Request):
     global last_gpt_reply  # <== 这里声明用全局的
+    global last_transcript  # 告诉 Python 用全局的变量
         # 如果 last_gpt_reply 为 None，使用空字符串
     last_gpt_reply = last_gpt_reply or ""
-
+    last_transcript = last_transcript or ""
     data = await request.json()
     base64_audio = data.get("file")
 
@@ -88,20 +90,10 @@ async def upload_audio_base64(request: Request):
     with open(file_path, "wb") as f:
         f.write(audio_data)
 
-
- # Whisper 转录
-   # Step 1: Whisper 识别语音
     try:
-        # with open(file_path, "rb") as audio_file:
-        #     transcript = openai.Audio.transcribe(
-        #         model="whisper-1",
-        #         file=audio_file,
-        #         response_format="verbose_json"  # 注意不是 "json"
-        #     )
-
-        # print("语言：", transcript["language"])
-        # print("文本：", transcript["text"])
-
+        if last_transcript:
+            print("上一次语言：", last_transcript.language)
+            print("上一次文本：", last_transcript.text)
         with open(file_path, "rb") as audio_file:
             transcript = client.audio.transcriptions.create(
                 model="whisper-1",
@@ -115,10 +107,19 @@ async def upload_audio_base64(request: Request):
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": f"Whisper error: {str(e)}"})
 
+
+    print('last_gpt_reply',last_gpt_reply) 
+    if last_gpt_reply:
+        last_gpt_reply_dict = json.loads(last_gpt_reply)
+        
+        last_reply_text  = last_gpt_reply_dict["responses"][0]["reply"]
+        last_reply_order = last_gpt_reply_dict["order"]
+        last_reply_user_preference = last_gpt_reply_dict["user_preference"]
+        last_reply_note = last_gpt_reply_dict["note"]
+        # last_transcript = None 
     # 读取 system prompt 文件内容
     with open("system_prompt.txt", "r", encoding="utf-8") as f:
         system_prompt = f.read()
-    print('last_gpt_reply',last_gpt_reply)
     # 构建消息列表
     messages = [
         {"role": "system", "content": system_prompt},
@@ -132,13 +133,7 @@ async def upload_audio_base64(request: Request):
     )
     
     gpt_reply = chat_response.choices[0].message.content
-    last_gpt_reply = gpt_reply
-    print('gpt_reply',gpt_reply)
-
-    # TTS 语音合成
-    # 进行 TTS 语音合成
-
-
+    print('gpt_reply',gpt_reply)  
     # 设置音频文件保存路径
     save_directory = "./responses"  # 使用相对路径保存到当前项目的 responses 文件夹
     audio_file_path = os.path.join(save_directory, "audio.mp3")  # 设置完整的文件路径
@@ -170,27 +165,16 @@ async def upload_audio_base64(request: Request):
     # 然后再保存新音频文件
     with open(audio_file_path, "wb") as f:
         f.write(audio_data)
-
-    
-    # audio_url = f"127.0.0.1:8000/responses/{os.path.basename(audio_file_path)}"  # 获取文件名并生成 URL
-    # print('Generated audio URL:', audio_url)
-
-
-    # audio_file_path = "responses/audio.mp3"
-    # audio_url = f"http://127.0.0.1:8000/responses/{os.path.basename(audio_file_path)}"
-
     audio_url = "/responses/audio.mp3"
 
-
-    # 返回识别文本和语音路径
-
-    # 如果 gpt_reply 是有效的 JSON 字符串
     try:
         gpt_reply_json = json.loads(gpt_reply)  # 将字符串解析为 JSON 对象
     except json.JSONDecodeError:
         gpt_reply_json = None  # 如果解析失败，则设为 None
 
-
+    last_gpt_reply = gpt_reply
+    last_transcript = transcript
+    
     return {
         "transcript": transcript,
         "gpt_reply": gpt_reply_json,
