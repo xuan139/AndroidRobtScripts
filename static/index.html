@@ -296,7 +296,8 @@
                 console.log('音频成功上传到服务器');
                 clearMessages();
                 // addMessage("Message Sent", "system");
-                addMessage(result.transcript.text, "user", true);  // 覆盖并显示用户语音转写
+                // addMessage(result.transcript.text, "user", true);  // 覆盖并显示用户语音转写
+
                 // addMessage(result.gpt_reply, "system");       // 追加 GPT 回复
 
                 //update Menu UI
@@ -328,7 +329,8 @@
 
                 console.log("checkout",result.gpt_reply.checkout);
                 if(result.gpt_reply.checkout)
-                  showReceipt()
+                  // showReceipt()
+                  confirmOrder()
 
                 const audioUrl = `${apiBaseUrl}${result.tts_audio_url}?t=${new Date().getTime()}`;
                 console.log("TTS 音频地址:", audioUrl);

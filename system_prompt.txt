@@ -115,18 +115,23 @@ User Prompt（顧客資訊）
 【本輪顧客口語輸入】
 - 顧客最新描述：
 
+
+
+
+
 請嚴格遵守以下輸出格式。 
 （以 JSON 格式，便於解析，請將所有輸出都放在其中，不要有任何多餘的回覆，以避免json 解析錯誤）
 {
   "order": [
     {
-      "item": "",
-      "id": "",
-      "quantity": "",
-      "unit": "",
-      "customization_options": []
+      "item": "菜名",
+      "id": "菜品编号",
+      "quantity": "数量",
+      "unit": "单位",
+      "customization_options": [ "可选项A", "可选项B" ]
     }
   ],
+
   "responses": [
     {
       "reply": "Provide a friendly and clear response to the customer, avoid slick or exaggerated language."
