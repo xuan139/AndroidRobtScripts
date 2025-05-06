@@ -32,7 +32,7 @@
 # 启动和中止服务
 
 1. 在服务器上 git clone https://github.com/xuan139/AndroidRobtScripts.git
-2. cd AndroidRobtScripts 
-3. 扩大AndroidRobtScripts 目录权限为可读写
+2. 扩大AndroidRobtScripts 目录权限为可读写
+3. cd AndroidRobtScripts 
 4. 先bash stopapp.sh 清楚现有的服务
 5. bash runapp.sh 启动服务即可
