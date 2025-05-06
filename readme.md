@@ -30,7 +30,7 @@
 
 # 启动和中止服务
 
-1. 在服务器上 git clone https://github.com/xuan139/AndroidRobtScripts.git到本地
+1. 在服务器上 git clone https://github.com/xuan139/AndroidRobtScripts.git
 2. cd AndroidRobtScripts 
 3. 扩大AndroidRobtScripts 目录权限为可读写
 4. 先bash stopapp.sh 清楚现有的服务
