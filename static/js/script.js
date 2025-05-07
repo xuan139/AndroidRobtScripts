@@ -36,27 +36,26 @@ let currentLanguage = 'ko'; // 默认韩语
         const existing = cart.find(ci => ci.id === id);
         const quantity = existing ? existing.quantity : 0;
 
+
         const cardHtml = `
-          <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm">
-              <img src="${item.image}" class="card-img-top" alt="dish">
-              <div class="card-body">
-                <h5 class="text-muted">${id}</h5>
-                <h5 class="card-title">${name}</h5>
-                <p><strong>₩${item.price}</strong></p>
-              </div>
-              <div class="card-footer d-flex justify-content-between align-items-center">
-                <div>
-                  <button class="btn btn-sm btn-outline-secondary" onclick="decreaseQuantity('${id}')">-</button>
-                  <span id="quantity-${id}" class="mx-2">${quantity}</span>
-                  <button class="btn btn-sm btn-outline-secondary" onclick="increaseQuantity('${id}')">+</button>
-                </div>
-              </div>
+        <div class="card" style="min-width: 180px; max-width: 200px;">
+          <img src="${item.image}" class="card-img-top fixed-img" alt="dish">
+          <div class="card-body">
+            <h5 class="text-muted">${id}</h5>
+            <h5 class="card-title">${name}</h5>
+            <p><strong>₩${item.price}</strong></p>
+          </div>
+          <div class="card-footer d-flex justify-content-between align-items-center">
+            <div>
+              <button class="btn btn-sm btn-outline-secondary" onclick="decreaseQuantity('${id}')">-</button>
+              <span id="quantity-${id}" class="mx-2">${quantity}</span>
+              <button class="btn btn-sm btn-outline-secondary" onclick="increaseQuantity('${id}')">+</button>
             </div>
           </div>
-        `;
-
-        menuSection.innerHTML += cardHtml;
+        </div>
+      `;
+      menuSection.innerHTML += cardHtml;
+        
       });
     }
 
