@@ -111,7 +111,7 @@ body {
 
 .card {
   flex: 0 0 auto;
-  width: 360px;
+  width: 720px;
   max-width: 200px;
   scroll-snap-align: start;
   transition: transform 0.2s;
