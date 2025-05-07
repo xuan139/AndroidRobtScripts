@@ -305,7 +305,7 @@
                 console.log('音频成功上传到服务器');
                 clearMessages();
                 const order = result.gpt_reply.order;
-                print("order",order)
+                console.log("order",order)
 
                 if (Array.isArray(order)) {
                   if (order.length === 0) {
@@ -330,8 +330,6 @@
 
                 console.log("language",result.language);
                 handleTranscriptResult(result);
-
-
                 console.log("checkout",result.gpt_reply.checkout);
                 if(result.gpt_reply.checkout)
                   // showReceipt()
