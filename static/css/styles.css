@@ -161,29 +161,14 @@ body {
   background-color: #e65c00;
 }
 
-/* 在竖屏时每行显示一个卡片并允许横向滚动 */
-@media (max-width: 576px) {
-  .menu-container {
-    display: flex;
-    overflow-x: auto;
-  }
 
-  .card {
-    flex: 0 0 auto; /* 保持卡片固定宽度 */
-    width: 200px;   /* 固定卡片宽度 */
-  }
+.card {
+  width: 33.33vw; /* 默认：横屏或无特殊处理时，宽度为屏幕的1/3 */
 }
 
-/* 中等设备上每行显示多个卡片 */
-@media (min-width: 577px) {
-  .menu-container {
-    display: flex;
-    overflow-x: auto;
-  }
-
+@media (orientation: portrait) {
   .card {
-    flex: 0 0 auto;
-    width: 200px; /* 固定卡片宽度 */
+    width: 100vw; /* 竖屏时：占满整个屏幕宽度 */
   }
 }
 
