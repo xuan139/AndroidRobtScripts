@@ -99,22 +99,23 @@ body {
   background-color: #009900;
 }
 
-.menu-container {
+.menuContainer {
   display: flex;
+  flex-wrap: nowrap;
   overflow-x: auto;
   gap: 12px;
-  padding: 10px;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
+  padding: 10px;
 }
 
 .card {
-  min-width: 180px;
-  max-width: 200px;
   flex: 0 0 auto;
+  width: 360px;
+  max-width: 200px;
+  scroll-snap-align: start;
+  transition: transform 0.2s;
 }
-
-
 
 /* 鼠标悬停时卡片变大 */
 .card:hover {
