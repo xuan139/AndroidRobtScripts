@@ -46,10 +46,10 @@ app.mount("/responses", StaticFiles(directory="responses"), name="responses")
 def process_gpt_reply(gpt_reply):
     try:
         gpt_reply_dict = json.loads(gpt_reply)
-        print("✅ 成功解析为 JSON")
+        # print("✅ 成功解析为 JSON")
         return gpt_reply_dict
     except json.JSONDecodeError:
-        print("❌ 不是 JSON，转换成默认结构")
+        # print("❌ 不是 JSON，转换成默认结构")
         # 包装成标准格式返回
         return {
             "responses": [{"reply": gpt_reply}],
@@ -94,22 +94,22 @@ async def upload_audio_base64(request: Request):
     last_transcript_language = last_transcript_language if last_transcript_language else ""
     # ---- 安全读取 last_transcript ----
 
-    print("上一次语言：", getattr(last_transcript_language, 'language', '未知'))
+    print("上一次语言：", last_transcript_language)
     print("上一次文本：", last_transcript_text)
     reply_text = ""
 
     last_reply_text = last_reply_order = last_reply_user_preference = last_reply_note = "（无）"
-    gpt_reply_dict = {}
+    # gpt_reply_dict = {}
 
-    if last_gpt_reply and last_gpt_reply.strip():
-        try:
-            print(f"last_gpt_reply 内容为：{repr(last_gpt_reply)}")
-            gpt_reply_dict = json.loads(last_gpt_reply)
-            # 提取信息...
-        except json.JSONDecodeError as e:
-            print("解析 last_gpt_reply 出错:", e)
-    else:
-        print("last_gpt_reply 是空的或仅包含空白")
+    # if last_gpt_reply and last_gpt_reply.strip():
+    #     try:
+    #         print(f"last_gpt_reply 内容为：{repr(last_gpt_reply)}")
+    #         gpt_reply_dict = json.loads(last_gpt_reply)
+    #         # 提取信息...
+    #     except json.JSONDecodeError as e:
+    #         print("解析 last_gpt_reply 出错:", e)
+    # else:
+    #     print("last_gpt_reply 是空的或仅包含空白")
 
     data = await request.json()
     base64_audio = data.get("file")
@@ -171,11 +171,11 @@ async def upload_audio_base64(request: Request):
 
     # 示例用法
     gpt_reply = chat_response.choices[0].message.content 
-    print("原始 gpt_reply:", repr(gpt_reply)) # 假设你已从聊天 API 获取了这个值
+    # print("原始 gpt_reply:", repr(gpt_reply)) # 假设你已从聊天 API 获取了这个值
     gpt_reply_dict = process_gpt_reply(gpt_reply)
     reply_text = gpt_reply_dict.get("responses", [{}])[0].get("reply", "（無）")
 
-    print("reply_text",reply_text)
+    # print("reply_text",reply_text)
 
     chat_response_tts = client.audio.speech.create(
         model="tts-1",
@@ -193,17 +193,17 @@ async def upload_audio_base64(request: Request):
     # 创建一个可以在 HTML 中使用的 data URL
     audio_url = f"data:audio/mp3;base64,{audio_base64}"
 
-    # try:
-    #     gpt_reply_json = json.loads(gpt_reply)  # 将字符串解析为 JSON 对象
-    # except json.JSONDecodeError:
-    #     gpt_reply_json = None  # 如果解析失败，则设为 None
+    try:
+        gpt_reply_json = json.loads(gpt_reply)  # 将字符串解析为 JSON 对象
+    except json.JSONDecodeError:
+        gpt_reply_json = None  # 如果解析失败，则设为 None
 
     last_gpt_reply = gpt_reply
     # last_transcript = transcript
 
     last_transcript_text = transcript.text
     last_transcript_language = transcript.language
-    print("gpt_reply_json",gpt_reply_dict)
+    # print("gpt_reply_json",gpt_reply_json)
     return {
         "transcript": transcript.text,
         "language": transcript.language,

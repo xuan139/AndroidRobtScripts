@@ -27,7 +27,7 @@ let currentLanguage = 'ko'; // 默认韩语
 
 
     function renderMenu(items) {
-      const menuSection = document.getElementById('menuContainer');
+      const menuSection = document.getElementById('menuSection');
       menuSection.innerHTML = '';
 
       items.forEach((item, index) => {

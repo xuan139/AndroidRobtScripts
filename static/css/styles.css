@@ -101,21 +101,21 @@ body {
 
 .menuContainer {
   display: flex;
+  flex-direction: row;
   flex-wrap: nowrap;
   overflow-x: auto;
+  overflow-y: hidden;
   gap: 12px;
+  padding: 10px;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
-  padding: 10px;
 }
 
 .card {
-  flex: 0 0 auto;
-  width: 720px;
-  max-width: 200px;
+  flex: 0 0 auto; /* 防止自动换行 */
   scroll-snap-align: start;
-  transition: transform 0.2s;
 }
+
 
 /* 鼠标悬停时卡片变大 */
 .card:hover {
@@ -161,34 +161,6 @@ body {
 .order-btn:hover {
   background-color: #e65c00;
 }
-
-/* 在竖屏时每行显示一个卡片并允许横向滚动 */
-@media (max-width: 576px) {
-  .menu-container {
-    display: flex;
-    overflow-x: auto;
-  }
-
-  .card {
-    flex: 0 0 auto; /* 保持卡片固定宽度 */
-    width: 200px;   /* 固定卡片宽度 */
-  }
-}
-
-/* 中等设备上每行显示多个卡片 */
-@media (min-width: 577px) {
-  .menu-container {
-    display: flex;
-    overflow-x: auto;
-  }
-
-  .card {
-    flex: 0 0 auto;
-    width: 200px; /* 固定卡片宽度 */
-  }
-}
-
-
 
 
 
