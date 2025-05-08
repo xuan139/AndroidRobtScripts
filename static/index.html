@@ -165,7 +165,7 @@
   
     function startRecording() {
       isRecording = true;
-      updateStatus("请说，我在听");
+      updateStatus("請說，我在聽");
       lastSpeechTime = Date.now(); // 记录开始录音时间
       initializeAudioProcessing();
     }
@@ -219,6 +219,7 @@
               }
             } else {
               updateVolumeBar(average);
+              updateStatus("👉 請全程聲量大於10，👉 請再說一次");
             }
   
             // 如果音量低于阈值2秒并且录音持续时间超过1秒，停止录音
@@ -269,7 +270,7 @@
     async function sendMessage() {
       if (speechDuration > 1) {
         isMessageReady = true;
-        updateStatus("处理中...");
+        updateStatus("👉 處理中...");
 
         mediaRecorder.stop();
         mediaRecorder.onstop = async () => {
@@ -383,7 +384,7 @@
     function resetRecording() {
       speechDuration = 0;
       isMessageReady = false;
-      updateStatus("请说 我在听");
+      updateStatus("請說，我在聽");
   
       // 重新开始监听
       if (audioStream) {
@@ -415,7 +416,5 @@
     addMessage("Welcome! Start speaking.", "system");
     startRecording();
   </script>
-  
-    
 </body>
 </html>

@@ -143,7 +143,7 @@ async def upload_audio_base64(request: Request):
     # print("messages",messages)
 
     chat_response = client.chat.completions.create(
-        model="gpt-4o",  # 使用 GPT-4 模型
+        model="gpt-4o",  
         messages=messages
     )
  
