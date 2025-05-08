@@ -49,7 +49,7 @@ def process_gpt_reply(gpt_reply):
         print("✅ 成功解析为 JSON")
         return gpt_reply_dict
     except json.JSONDecodeError:
-        print("❌ 不是 JSON，转换成默认结构",gpt_reply)
+        print(gpt_reply)
         # 包装成标准格式返回
         return {
             "responses": [{"reply": gpt_reply}],
@@ -132,6 +132,7 @@ async def upload_audio_base64(request: Request):
     except Exception as e:
         return JSONResponse(content={"error": f"Whisper API error: {str(e)}"}, status_code=500)
 
+    print("last_gpt_reply",last_gpt_reply)
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "assistant", "content": last_transcript_text},
@@ -140,8 +141,6 @@ async def upload_audio_base64(request: Request):
         {"role": "user", "content": transcript.text}
     ]
 
-    # print("messages",messages)
-
     chat_response = client.chat.completions.create(
         model="gpt-4o",  
         messages=messages
@@ -149,16 +148,11 @@ async def upload_audio_base64(request: Request):
  
     # 示例用法
     gpt_reply = chat_response.choices[0].message.content 
-    print("当前 gpt_reply:", repr(gpt_reply)) # 假设你已从聊天 API 获取了这个值
+
     gpt_reply_data = process_gpt_reply(gpt_reply)
        # 获取各字段值
-    order = gpt_reply_data["order"]
     responses = gpt_reply_data.get("responses", [])
     reply_text = responses[0].get("reply", "") if responses else ""
-    user_pref = gpt_reply_data["user_preference"]
-    note = gpt_reply_data["note"]
-    checkout = gpt_reply_data["checkout"]
-
     print("reply_text",reply_text)
 
     chat_response_tts = client.audio.speech.create(
@@ -180,7 +174,6 @@ async def upload_audio_base64(request: Request):
     return {
         "transcript": transcript.text,
         "language": transcript.language,
-        "gpt_reply": gpt_reply_data,
-        "tts_audio_url": audio_url,
-        "order": order
+        "gpt_reply_data": gpt_reply_data,
+        "tts_audio_url": audio_url
     }
