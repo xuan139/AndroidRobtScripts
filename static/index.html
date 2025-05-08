@@ -211,17 +211,7 @@
             }
   
             const average = sum / bufferLength;
-            if (average > 10) { // 这是“音量阈值判断”。当音频的平均音量超过 10 时，认为用户在讲话。
-              lastSpeechTime = Date.now(); // 更新最后录音时间
-              updateVolumeBar(average);
-              if (speechDuration < 1) {
-                speechDuration += 0.1;
-              }
-            } else {
-              updateVolumeBar(average);
-              updateStatus("👉 請全程聲量大於10，👉 請再說一次");
-              return;
-            }
+            processVolume(average);
   
             // 如果音量低于阈值2秒并且录音持续时间超过1秒，停止录音
             if (Date.now() - lastSpeechTime > silenceThreshold && speechDuration > 1) {
@@ -232,6 +222,31 @@
         .catch(error => console.error("Error accessing microphone: ", error));
     }
   
+
+    let lowVolumeStartTime = null;
+    const lowVolumeDelay = 2000; // 1秒内连续低音量才提示（可调）
+
+    function processVolume(average) {
+      updateVolumeBar(average); // 始终更新音量条
+
+      if (average > 10) {
+        // 有讲话，重置状态
+        lastSpeechTime = Date.now();
+        speechDuration = Math.min(speechDuration + 0.1, 10);
+        lowVolumeStartTime = null;
+        updateStatus("")
+      } else {
+        // 开始计时低音量
+        if (!lowVolumeStartTime) {
+          lowVolumeStartTime = Date.now();
+        } else if (Date.now() - lowVolumeStartTime > lowVolumeDelay) {
+          updateStatus("👉 請全程聲量大於10，👉 請再說一次");
+          return
+        }
+      }
+    }
+
+
     let currentAudio = null;
   
     // 保存 WAV 文件的函数
@@ -306,7 +321,7 @@
               if (response.ok) {
                 console.log('音频成功上传到服务器');
                 clearMessages();
-                const order = result.gpt_reply.order;
+                const order = result.order;
                 console.log("order",order)
 
                 if (Array.isArray(order)) {

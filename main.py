@@ -181,5 +181,6 @@ async def upload_audio_base64(request: Request):
         "transcript": transcript.text,
         "language": transcript.language,
         "gpt_reply": gpt_reply_data,
-        "tts_audio_url": audio_url
+        "tts_audio_url": audio_url,
+        "order": order
     }
