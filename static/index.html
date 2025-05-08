@@ -211,7 +211,7 @@
             }
   
             const average = sum / bufferLength;
-            if (average > 15) { // 这是“音量阈值判断”。当音频的平均音量超过 10 时，认为用户在讲话。
+            if (average > 10) { // 这是“音量阈值判断”。当音频的平均音量超过 10 时，认为用户在讲话。
               lastSpeechTime = Date.now(); // 更新最后录音时间
               updateVolumeBar(average);
               if (speechDuration < 1) {
@@ -219,7 +219,8 @@
               }
             } else {
               updateVolumeBar(average);
-              updateStatus("👉 請全程聲量大於15，👉 請再說一次");
+              updateStatus("👉 請全程聲量大於10，👉 請再說一次");
+              return;
             }
   
             // 如果音量低于阈值2秒并且录音持续时间超过1秒，停止录音
