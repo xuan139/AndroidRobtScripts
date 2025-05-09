@@ -49,7 +49,7 @@ def process_gpt_reply(gpt_reply):
         print("✅ 成功解析为 JSON")
         return gpt_reply_dict
     except json.JSONDecodeError:
-        print(gpt_reply)
+        # print(gpt_reply)
         # 包装成标准格式返回
         return {
             "responses": [{"reply": gpt_reply}],

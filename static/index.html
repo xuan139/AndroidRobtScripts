@@ -240,7 +240,7 @@
         if (!lowVolumeStartTime) {
           lowVolumeStartTime = Date.now();
         } else if (Date.now() - lowVolumeStartTime > lowVolumeDelay) {
-          updateStatus("👉 請全程聲量大於10，👉 請再說一次");
+          updateStatus("👉 請說，我在聽 聲量保持大於10");
           return
         }
       }
@@ -367,12 +367,12 @@
                 resetRecording();
               } else {
                 console.error('上傳失敗');
-                addMessage("Upload Failed", "system");
+                addMessage("Upload Failed,Try again", "system");
                 resetRecording();
               }
             } catch (error) {
               console.error('發送音頻錯誤:', error);
-              addMessage("Upload Error", "system");
+              addMessage("Upload Error, Try again", "system");
               resetRecording();
             }               
           };
