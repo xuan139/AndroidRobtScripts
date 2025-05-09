@@ -197,8 +197,6 @@ pyobjc-framework-WebKit==11.0
 pyparsing==3.2.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.0
-# Editable install with no version control (python-for-android==0.1)
--e /Users/lijiaxi/Downloads/python-for-android-custom-v2
 pyttsx3==2.98
 PyYAML==6.0.2
 requests==2.32.3
