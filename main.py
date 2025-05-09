@@ -9,6 +9,12 @@ from dotenv import load_dotenv
 import json
 import io
 import openai
+import time
+from faster_whisper import WhisperModel
+import time
+import tempfile
+import pyttsx3
+
 
 from openai import OpenAI
 # 加载 .env 文件
@@ -60,6 +66,62 @@ def process_gpt_reply(gpt_reply):
         }
 
 
+
+def generate_tts_audio_url(reply_text):
+    try:
+        print("[INFO] 正在生成语音...")
+
+        # 初始化引擎
+        engine = pyttsx3.init()
+
+        # voices = engine.getProperty('voices')
+        # for voice in voices:
+        #     print(f"Voice ID: {voice.id}, Name: {voice.name}")
+
+        filename = "temp.wav"
+        print(f"[INFO] 保存语音到文件: {filename}")
+        
+        # 尝试保存文件并捕获异常
+        engine.save_to_file(reply_text, filename)
+        engine.runAndWait()
+        
+        print("[INFO] 语音合成任务已启动")
+
+        if not os.path.exists(filename):
+            raise RuntimeError("语音文件未成功生成！")
+        print("[INFO] 语音文件生成成功")
+
+        with open(filename, "rb") as f:
+            audio_data = f.read()
+        print(f"[INFO] 读取音频文件，大小: {len(audio_data)} 字节")
+
+        audio_base64 = base64.b64encode(audio_data).decode('utf-8')
+        print(f"[INFO] Base64 编码完成，长度: {len(audio_base64)} 字符")
+
+        os.remove(filename)
+        print(f"[INFO] 已删除临时文件: {filename}")
+
+        audio_url = f"data:audio/mp3;base64,{audio_base64}"
+        print(f"[INFO] 生成的音频URL前50字符: {audio_url[:50]}...")
+
+        return audio_url
+
+    except Exception as e:
+        print(f"[ERROR] 发生错误: {e}")
+        return None
+
+
+
+
+def split_text_by_word_limit(text, word_limit=20):
+    words = text.split()
+    segments = []
+    
+    # 按照每20个单词进行分段
+    for i in range(0, len(words), word_limit):
+        segments.append(' '.join(words[i:i + word_limit]))
+    
+    return segments
 
 @app.on_event("startup")
 async def load_system_prompt():
@@ -118,19 +180,50 @@ async def upload_audio_base64(request: Request):
         return JSONResponse(content={"error": f"Base64 decoding error: {str(e)}"}, status_code=400)
 
     audio_file = io.BytesIO(audio_data)
-    audio_file.name = 'audio.wav'  # 设置文件名
+    audio_file.name = 'audio.mp3'  # 设置文件名
 
-    try:
-        transcript = client.audio.transcriptions.create(
-            model="whisper-1",
-            file=audio_file,
-            response_format="verbose_json"
-        )
+    start = time.perf_counter()
+    # try:
+    #     transcript = client.audio.transcriptions.create(
+    #         model="whisper-1",
+    #         file=audio_file,
+    #         response_format="verbose_json"
+    #     )
 
-        print("新文本", transcript.text)
-        print("新语言" , transcript.language)  
-    except Exception as e:
-        return JSONResponse(content={"error": f"Whisper API error: {str(e)}"}, status_code=500)
+    #     end = time.perf_counter()
+    #     print(f"🕒 Whisper 語音識別耗時: {end - start:.4f} 秒")
+
+    #     print("新文本", transcript.text)
+    #     print("新语言" , transcript.language)  
+    # except Exception as e:
+    #     return JSONResponse(content={"error": f"Whisper API error: {str(e)}"}, status_code=500)
+
+
+        # 使用 tiny 模型（速度最快），可選 cpu 或 cuda
+    model = WhisperModel("tiny", device="cpu")  # 或 device="cuda" 使用 GPU
+
+    start_time = time.time()
+
+    # 将 BytesIO 写入临时文件
+    with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
+        tmp.write(audio_data)
+        tmp.flush()
+        audio_path = tmp.name  # 临时文件路径
+        # 然后传给 transcribe
+        segments, info = model.transcribe(audio_path)
+
+
+    segments, info = model.transcribe(audio_path)
+    segments = list(segments)  # 🔥 關鍵：materialize generator
+    end_time = time.time()
+
+    print(f"語言偵測結果：{info.language}")
+    for segment in segments:
+        print(f"[{segment.start:.2f}s - {segment.end:.2f}s]: {segment.text}")
+
+    full_text = " ".join([segment.text for segment in segments])
+    print("完整文本內容：", full_text)
+    print(f"轉錄花費時間：{end_time - start_time:.2f} 秒")
 
     print("last_gpt_reply",last_gpt_reply)
     messages = [
@@ -138,13 +231,18 @@ async def upload_audio_base64(request: Request):
         {"role": "assistant", "content": last_transcript_text},
         {"role": "assistant", "content": last_transcript_language},
         {"role": "assistant", "content": last_gpt_reply},
-        {"role": "user", "content": transcript.text}
+        {"role": "user", "content": full_text}
     ]
+
+    start = time.perf_counter()
 
     chat_response = client.chat.completions.create(
         model="gpt-4o",  
         messages=messages
     )
+
+    end = time.perf_counter()
+    print(f"🕒 ChatGPT 回應耗時: {end - start:.4f} 秒")
  
     # 示例用法
     gpt_reply = chat_response.choices[0].message.content 
@@ -153,13 +251,18 @@ async def upload_audio_base64(request: Request):
        # 获取各字段值
     responses = gpt_reply_data.get("responses", [])
     reply_text = responses[0].get("reply", "") if responses else ""
+    # reply_text = "收到你的需求"
     print("reply_text",reply_text)
 
+    start = time.perf_counter()
     chat_response_tts = client.audio.speech.create(
         model="tts-1",
         voice="nova",
         input=reply_text
     )
+
+    end = time.perf_counter()
+    print(f"🕒 ChatGPT tts 回应时间: {end - start:.4f} 秒")
 
         # 获取 TTS 合成的二进制音频内容
     audio_data = chat_response_tts.content  # 获取二进制内容
@@ -168,12 +271,12 @@ async def upload_audio_base64(request: Request):
 
     last_gpt_reply = gpt_reply
     # last_transcript = transcript
-    last_transcript_text = transcript.text
-    last_transcript_language = transcript.language
+    # last_transcript_text = transcript.text
+    # last_transcript_language = transcript.language
  
     return {
-        "transcript": transcript.text,
-        "language": transcript.language,
+        "transcript": full_text,
+        "language": info.language,
         "gpt_reply_data": gpt_reply_data,
         "tts_audio_url": audio_url
     }
