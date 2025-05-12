@@ -197,6 +197,7 @@ async def upload_audio_base64(request: Request):
 
 
         # 使用 tiny 模型（速度最快），可選 cpu 或 cuda
+    # model = WhisperModel("large-v2", device="cuda", compute_type="float16")
     model = WhisperModel("tiny", device="cpu")
     start_time = time.time()
 
@@ -261,8 +262,13 @@ async def upload_audio_base64(request: Request):
     print(f"🕒 ChatGPT tts 回应时间: {end - start:.4f} 秒")
 
     # 保存为 static/uploads/audio.mp3
+
+    # 获取当前时间戳作为文件名的一部分
+    timestamp = int(time.time())  # 获取秒级时间戳
+    file_path = f"static/uploads/audio_{timestamp}.mp3"
+
     audio_data = chat_response_tts.content
-    file_path = "static/uploads/audio.mp3"
+    
     with open(file_path, "wb") as f:
         f.write(audio_data)
 
