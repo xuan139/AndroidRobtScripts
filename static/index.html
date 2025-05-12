@@ -354,7 +354,9 @@
                     console.error("播放音频失败：", err);
                   });
                 }
-
+                if (result.transcript) {
+                  addMessage(result.transcript, "system");
+                }
 
                 console.log("language",result.language);
                 handleTranscriptResult(result);

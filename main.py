@@ -197,8 +197,7 @@ async def upload_audio_base64(request: Request):
 
 
         # 使用 tiny 模型（速度最快），可選 cpu 或 cuda
-    model = WhisperModel("small", device="cuda", compute_type="float16") # 或 device="cuda" 使用 GPU
-
+    model = WhisperModel("tiny", device="cpu")
     start_time = time.time()
 
     # 将 BytesIO 写入临时文件
@@ -261,18 +260,20 @@ async def upload_audio_base64(request: Request):
     end = time.perf_counter()
     print(f"🕒 ChatGPT tts 回应时间: {end - start:.4f} 秒")
 
-        # 获取 TTS 合成的二进制音频内容
-    audio_data = chat_response_tts.content  # 获取二进制内容
-    audio_base64 = base64.b64encode(audio_data).decode('utf-8')
-    audio_url = f"data:audio/mp3;base64,{audio_base64}"
+    # 保存为 static/uploads/audio.mp3
+    audio_data = chat_response_tts.content
+    file_path = "static/uploads/audio.mp3"
+    with open(file_path, "wb") as f:
+        f.write(audio_data)
 
+    audio_url = file_path
     last_gpt_reply = gpt_reply
     # last_transcript = transcript
     # last_transcript_text = transcript.text
     # last_transcript_language = transcript.language
  
     return {
-        "transcript": full_text,
+        "transcript": reply_text,
         "language": info.language,
         "gpt_reply_data": gpt_reply_data,
         "tts_audio_url": audio_url
