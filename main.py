@@ -197,7 +197,7 @@ async def upload_audio_base64(request: Request):
 
 
         # 使用 tiny 模型（速度最快），可選 cpu 或 cuda
-    model = WhisperModel("tiny", device="cpu")  # 或 device="cuda" 使用 GPU
+    model = WhisperModel("small", device="cuda", compute_type="float16") # 或 device="cuda" 使用 GPU
 
     start_time = time.time()
 

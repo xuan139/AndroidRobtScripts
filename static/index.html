@@ -306,7 +306,6 @@
               const endpoint = `${apiBaseUrl}/upload-audio-base64`;
 
               console.log('endpoint',endpoint);
-
               const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
@@ -320,8 +319,6 @@
 
               if (response.ok) {
                 console.log('音频成功上传到服务器');
-                clearMessages();
-
                 try {
                 // 如果 gpt_reply_data 是一个 JSON 字符串，尝试解析它
                   if (typeof result.gpt_reply_data === 'string') {
@@ -333,7 +330,8 @@
                     checkout = result.gpt_reply_data["checkout"] !== undefined ? result.gpt_reply_data["checkout"] : false;
 
                   } catch (error) {
-                      console.error("解析 gpt_reply_data 错误", error);
+                    updateStatus("👉 not a json ...");
+                    console.error("解析 gpt_reply_data 错误", error);
                   }
 
 
@@ -360,6 +358,7 @@
 
                 console.log("language",result.language);
                 handleTranscriptResult(result);
+                //判断语言
                 console.log("checkout",checkout);
                 if(checkout)
                   // showReceipt()
@@ -442,7 +441,7 @@
     }
   
     // Start recording on load
-    addMessage("Welcome! Start speaking.", "system");
+    addMessage("Talk to me.", "system");
     startRecording();
   </script>
 </body>
