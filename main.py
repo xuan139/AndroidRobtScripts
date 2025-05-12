@@ -197,8 +197,8 @@ async def upload_audio_base64(request: Request):
 
 
         # 使用 tiny 模型（速度最快），可選 cpu 或 cuda
-    # model = WhisperModel("large-v2", device="cuda", compute_type="float16")
-    model = WhisperModel("tiny", device="cpu")
+    model = WhisperModel("large-v2", device="cuda", compute_type="float16")
+    # model = WhisperModel("tiny", device="cpu")
     start_time = time.time()
 
     # 将 BytesIO 写入临时文件
@@ -268,7 +268,7 @@ async def upload_audio_base64(request: Request):
     file_path = f"static/uploads/audio_{timestamp}.mp3"
 
     audio_data = chat_response_tts.content
-    
+
     with open(file_path, "wb") as f:
         f.write(audio_data)
 
