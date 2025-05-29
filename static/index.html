@@ -1,450 +1,179 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <title>Voice Order Rob</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
-  <link rel="stylesheet" href="../static/css/styles.css" />
-  <link rel="icon" type="image/png" href="../static/images/13000.png" />
-
-  <script src="../static/js/script.js" defer></script>
+  <title>แบบสอบถามด้วยเสียง (逐题语音问答)</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f9;
+      color: #333;
+      margin: 0;
+      padding: 40px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #2b7bba;
+    }
+    button {
+      display: block;
+      margin: 20px auto;
+      background-color: #2b7bba;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #1e5f8f;
+    }
+    #question {
+      font-size: 20px;
+      text-align: center;
+      margin: 30px 0 10px;
+      min-height: 70px; /* 高一点，防止换行闪烁 */
+      white-space: pre-line; /* 支持换行 */
+    }
+    #answer {
+      text-align: center;
+      font-size: 18px;
+      color: green;
+      margin-bottom: 20px;
+      min-height: 24px;
+    }
+    #result {
+      background: #f9f9f9;
+      border-radius: 8px;
+      padding: 15px;
+      white-space: pre-wrap;
+      font-size: 14px;
+      color: #444;
+      overflow: auto;
+    }
+  </style>
 </head>
 <body>
-
-
-
-  <div class="container-fluid py-4">
-    <!-- First Row -->
-    <div class="row">
-      <!-- Left Column: Mic Section -->
-      <audio id="ttsAudio" style="display: none;"></audio>
-
-      <div class="col-md-3 mb-4">
-        <div class="card p-3">
-          <h5>I am Seo-hyeon </h5>
-          <img src="../static/images/logo.png" class="card-img-top restaurant-img" alt="restaurant">
-          <img src="https://cdn-icons-png.flaticon.com/512/2922/2922561.png" class="avatar mb-3" alt="Avatar" />
-          <video id="camera" autoplay muted class="w-100 d-none"></video>
-          <div class="progress mb-2">
-            <div class="progress-bar bg-success" id="volumeFill" style="width: 0%;"></div>
-          </div>
-          <!-- <div id="volumeLevel">Volume: 0 (Threshold: 10)</div> -->
-          <div class="d-flex align-items-center mb-2">
-            <div id="volumeLevel" class="me-2">Volume: 0 (Threshold: 10)</div>
-            <!-- <button id="threshold-dec" class="btn btn-secondary btn-sm me-1">-</button>
-            <button id="threshold-inc" class="btn btn-secondary btn-sm">+</button> -->
-          </div>
-          
-          <div id="status" style="font-size: 28px; color: red;">initial</div>
-
-          <div id="countdown"></div>
-          <div id="log" class="mt-3"></div>
-        </div>
-
-        <!-- <div class="card shadow-sm p-3 mt-3">
-          <img src="../static/images/face.png" class="card-img-top restaurant-img" alt="restaurant">
-          <div class="card-body">
-            <p><strong>address：</strong>서울 송파구 석촌호수로 110</p>
-          </div>
-        </div> -->
-      </div>
-
-
-      <!-- 弹出新网页的跳转按钮 -->
-      <a href="../static/backend.html" target="_blank" class="arrow-button" title="Open Backend in New Tab"></a>
-      <div class="col-md-6 mb-4">
-        <div class="card p-3">
-          <select id="languageSelector" class="form-select w-auto mb-3">
-            <option value="ko">🇰🇷 한국어</option>
-            <option value="zh">🇨🇳 中文</option>
-            <option value="ja">🇯🇵 日本語</option>
-            <option value="en">🇺🇸 English</option>
-          </select>
-          
-          <div class="row">
-            <!-- 菜品列表在左侧 -->
-            <div class="col-md-12">
-              <div id="menuSection" class="menuContainer">
-                <!-- 这里是插入的 .card 元素 -->
-              </div>
-              
-                <!-- 卡片将插入到这里 -->
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- 订单摘要放在下方 -->
-      <div class="col-md-3">
-        <div class="card shadow-sm p-3">
-          <h5>Table 1 Order Details</h5>
-          <div id="orderSummary">
-            <ul class="list-group" id="cartItems">
-              <!-- 动态添加的订单条目 -->
-            </ul>
-            <div class="mt-3 d-flex justify-content-between">
-              <span>Total</span>
-              <span id="subtotal">₩0</span>
-            </div>
-            <button class="btn btn-primary mt-2 w-100" onclick="confirmOrder()">Confirm</button>
-            <button class="btn btn-secondary mt-2 w-100" onclick="cancelOrder()">Reset</button>
-
-            <!-- 打印小票展示区 -->
-            <!-- 打印小票展示区 -->
-            <div id="receiptSection" class="mt-3 d-none">
-              <h6>🧾 Receipt</h6>
-              <pre id="receiptContent" class="bg-light p-2 rounded" style="font-size: 0.9rem;"></pre>
-              <button class="btn btn-outline-secondary w-100 mt-2" onclick="printReceipt()">🖨️ Print</button>
-              <button class="btn btn-outline-danger w-100 mt-2" onclick="clearReceipt()">🧹 Clear Receipt</button>
-            </div>
-
-
-          </div>
-        </div>
-      </div>
-
-
-
-    <!-- Second Row -->
-    <div class="row">
-      <!-- Left Column: Travel Info -->
-      <div class="col-md-6 mb-4">
-        <div class="card p-3">
-          <h5>Korean Tourist Attractions</h5>
-          <ul>
-            <li><strong>Gyeongbokgung Palace</strong> – A royal palace of the Joseon dynasty</li>
-            <li><strong>Namsan Tower</strong> – Offers panoramic views of Seoul</li>
-            <li><strong>Haeundae Beach (Busan)</strong> – Beautiful beach with urban scenery</li>
-            <li><strong>Jeju Island</strong> – Known for its nature and Hallasan mountain</li>
-            <li><strong>Insadong</strong> – Street for traditional Korean culture and crafts</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Right Column: Map -->
-      <div class="col-md-6 mb-4">
-        <div class="card p-3">
-          <h5>Map</h5>
-          <div id="map"></div>
-        </div>
-      </div>
-    </div>
+  <div class="container">
+    <h2>🎤 แบบสอบถามด้วยเสียง (逐题语音问答)</h2>
+    <button id="startBtn">▶ เริ่มตอบแบบสอบถาม</button>
+    <div id="question">คำถามจะแสดงที่นี่</div>
+    <div id="answer"></div>
+    <pre id="result">{}</pre>
   </div>
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
   <script>
-    const map = L.map('map').setView([37.5665, 126.9780], 12); // Seoul
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap'
-    }).addTo(map);
-    L.marker([37.5665, 126.9780]).addTo(map).bindPopup("Seoul City Hall");
-  </script>
+    const questions = [
+      { textTh: "1. คุณชื่ออะไร", textCn: "你叫什么名字", key: "name" },
+      { textTh: "2. คุณอายุเท่าไหร่", textCn: "你多大了", key: "age" },
+      { textTh: "3. เพศของคุณคืออะไร", textCn: "你的性别是什么", key: "gender" },
+      { textTh: "4. ที่อยู่ของคุณคืออะไร", textCn: "你的地址是什么", key: "address" },
+      { textTh: "5. อาชีพของคุณคืออะไร", textCn: "你的职业是什么", key: "job" },
+      { textTh: "6. งานอดิเรกของคุณคืออะไร", textCn: "你的兴趣爱好是什么", key: "hobbies" },
+      { textTh: "7. อาหารที่คุณชอบ", textCn: "你喜欢什么食物", key: "food" },
+      { textTh: "8. คุณมีสัตว์เลี้ยงไหม", textCn: "你有宠物吗", key: "pets" },
+      { textTh: "9. คุณพูดภาษาอะไร", textCn: "你说什么语言", key: "language" },
+      { textTh: "10. สีที่คุณชอบ", textCn: "你喜欢什么颜色", key: "color" }
+    ];
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-<!--  -->
-  <!-- Voice Script -->
-  <script>
-    const messageContainer = document.getElementById("log");
-    let isRecording = false;
-    let speechDuration = 0;
-    let lastSpeechTime = 0;
-    let silenceThreshold = 1000; // 2秒静默阈值
-    let isMessageReady = false;
-    let audioContext, analyser, microphone, javascriptNode;
-    let mediaRecorder;
-    let recordedChunks = [];
-    let audioStream;
-  
-    function startRecording() {
-      isRecording = true;
-      updateStatus("請說，我在聽");
-      lastSpeechTime = Date.now(); // 记录开始录音时间
-      initializeAudioProcessing();
-    }
-  
-    let audioChunks = []; // 保存录音数据
-  
-    function initializeAudioProcessing() {
-      if (!navigator.mediaDevices) {
-        console.error("Your browser does not support media devices.");
+    const questionEl = document.getElementById("question");
+    const answerEl = document.getElementById("answer");
+    const resultEl = document.getElementById("result");
+    const startBtn = document.getElementById("startBtn");
+
+    let currentIndex = 0;
+    const answers = {};
+
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = "th-TH";
+    recognition.interimResults = false;
+    recognition.continuous = false;
+
+    startBtn.addEventListener("click", () => {
+      currentIndex = 0;
+      Object.keys(answers).forEach(k => delete answers[k]);
+      resultEl.textContent = "{}";
+      askQuestion();
+      startBtn.disabled = true;
+    });
+
+    function askQuestion() {
+      if (currentIndex >= questions.length) {
+        questionEl.textContent = "✅ เสร็จสิ้นทุกคำถามแล้ว ขอบคุณค่ะ / 完成所有问题，谢谢！";
+        answerEl.textContent = "";
+        startBtn.disabled = false;
         return;
       }
-  
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-          audioStream = stream; // 保存流，之后可以重新使用
-          audioContext = new (window.AudioContext || window.webkitAudioContext)();
-          analyser = audioContext.createAnalyser();
-          microphone = audioContext.createMediaStreamSource(stream);
-          javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
-  
-          microphone.connect(analyser);
-          analyser.connect(javascriptNode);
-          javascriptNode.connect(audioContext.destination);
-  
-          // 用 MediaRecorder 录音
-          mediaRecorder = new MediaRecorder(stream);
-          mediaRecorder.ondataavailable = event => {
-            if (event.data.size > 0) {
-              audioChunks.push(event.data);
-            }
-          };
-  
-          mediaRecorder.start(); // 开始录音
-  
-          javascriptNode.onaudioprocess = function () {
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-            analyser.getByteFrequencyData(dataArray);
-  
-            let sum = 0;
-            for (let i = 0; i < bufferLength; i++) {
-              sum += dataArray[i];
-            }
-  
-            const average = sum / bufferLength;
-            processVolume(average);
-  
-            // 如果音量低于阈值2秒并且录音持续时间超过1秒，停止录音
-            if (Date.now() - lastSpeechTime > silenceThreshold && speechDuration > 1) {
-              sendMessage(); // 停止并处理
-            }
-          };
-        })
-        .catch(error => console.error("Error accessing microphone: ", error));
-    }
-  
 
-    let lowVolumeStartTime = null;
-    const lowVolumeDelay = 2000; // 1秒内连续低音量才提示（可调）
+      const currentQ = questions[currentIndex];
+      questionEl.textContent = `${currentQ.textTh}\n${currentQ.textCn}`;
+      answerEl.textContent = "🎤 กรุณาพูดตอบ...";
+      recognition.lang = "th-TH";
 
-    function processVolume(average) {
-      updateVolumeBar(average); // 始终更新音量条
-
-      if (average > 10) {
-        // 有讲话，重置状态
-        lastSpeechTime = Date.now();
-        speechDuration = Math.min(speechDuration + 0.1, 10);
-        lowVolumeStartTime = null;
-        updateStatus("")
-      } else {
-        // 开始计时低音量
-        if (!lowVolumeStartTime) {
-          lowVolumeStartTime = Date.now();
-        } else if (Date.now() - lowVolumeStartTime > lowVolumeDelay) {
-          updateStatus("👉 請說，我在聽 聲量保持大於10");
-          return
-        }
-      }
-    }
-
-
-    let currentAudio = null;
-  
-    // 保存 WAV 文件的函数
-    function saveWavFile(blob) {
-      const file = new File([blob], 'audio.wav', { type: 'audio/wav' });
-      saveAs(file);  // 使用 FileSaver.js 库来保存文件
-    }
-  
-    //修改order，或清空
-    function applyGptReplyToCart(orderList) {
-      //清空
-      if (!Array.isArray(orderList) || orderList.length === 0) {
-        cart.length = 0; // 清空购物车
-        renderMenu(menuItems);
-        renderCartSummary();
-        return;
-      }
-      //修改份数
-      orderList.forEach(orderItem => {
-        const { id, quantity } = orderItem;
-        const menuItem = menuItems.find(item => item.id === id);
-        if (!menuItem) return;
-
-        const existing = cart.find(ci => ci.id === id);
-        if (existing) {
-          existing.quantity = parseInt(quantity); // 覆盖现有数量
-        } else {
-          cart.push({ id, name: menuItem.name_ko, price: menuItem.price, quantity: parseInt(quantity) });
-        }
-      });
-
-      renderMenu(menuItems);
-      renderCartSummary();
-    }
-
-    // 发送消息并停止录音
-    async function sendMessage() {
-      if (speechDuration > 1) {
-        isMessageReady = true;
-        updateStatus("👉 處理中...");
-
-        mediaRecorder.stop();
-        mediaRecorder.onstop = async () => {
-          const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-          audioChunks = []; // 清空
-
-          // 把audioBlob轉成base64
-          const reader = new FileReader();
-          reader.readAsDataURL(audioBlob);
-
-          reader.onloadend = async () => {
-            const base64Audio = reader.result;
-
-            try {
-              // 發送到FastAPI
-              const apiBaseUrl = window.location.origin;
-              const endpoint = `${apiBaseUrl}/upload-audio-base64`;
-
-              console.log('endpoint',endpoint);
-              const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ file: base64Audio }),
-              });
-
-              const result = await response.json();
-              console.log('上傳結果:', result);
-
-              if (response.ok) {
-                console.log('音频成功上传到服务器');
-                try {
-                // 如果 gpt_reply_data 是一个 JSON 字符串，尝试解析它
-                  if (typeof result.gpt_reply_data === 'string') {
-                      result.gpt_reply_data = JSON.parse(result.gpt_reply_data);
-                  }
-                      // 然后再按字典来访问
-                    order = result.gpt_reply_data["order"] || [];
-                    responses = result.gpt_reply_data["responses"] || [];
-                    checkout = result.gpt_reply_data["checkout"] !== undefined ? result.gpt_reply_data["checkout"] : false;
-
-                  } catch (error) {
-                    updateStatus("👉 not a json ...");
-                    console.error("解析 gpt_reply_data 错误", error);
-                  }
-
-
-                if (Array.isArray(order)) {
-                  if (order.length === 0) {
-                    console.log("订单数据为空数组。");
-                    cancelOrder();  // 处理空订单
-                  } else {
-                    console.log("检测到有效的订单数据：", order);
-                    applyGptReplyToCart(order);  // 将订单应用到购物车
-                  }
-                } else {
-                  console.warn("gpt_reply.order 不是数组。", order);
-                }
-
-                if (result.tts_audio_url) {
-                  const audioElement = document.getElementById("ttsAudio");
-                  audioElement.src = result.tts_audio_url;
-                  audioElement.play().catch((err) => {
-                    console.error("播放音频失败：", err);
-                  });
-                }
-                // if (result.transcript) {
-                //   addMessage(result.transcript, "system");
-                // }
-
-                console.log("language",result.language);
-                handleTranscriptResult(result);
-                //判断语言
-                console.log("checkout",checkout);
-                if(checkout)
-                  // showReceipt()
-                  confirmOrder()
-                resetRecording();
-              } else {
-                console.error('上傳失敗');
-                addMessage("Upload Failed,Try again", "system");
-                resetRecording();
-              }
-            } catch (error) {
-              console.error('發送音頻錯誤:', error);
-              addMessage("Upload Error, Try again", "system");
-              resetRecording();
-            }               
-          };
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(currentQ.textTh);
+        utterance.lang = 'th-TH';
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utterance);
+        utterance.onend = () => {
+          startRecognition();
         };
-      }
-    }
-
-
-    function handleTranscriptResult(result) {
-      const langMap = {
-        korean: 'ko',
-        chinese: 'zh',
-        english: 'en',
-        japanese: 'ja'
-      };
-
-      const detectedLang = result.language;
-      const langCode = langMap[detectedLang];
-
-      if (langCode) {
-        document.getElementById('languageSelector').value = langCode;
-        updateMenuLanguage(langCode);  // 自动切换菜单
       } else {
-        console.warn('Unsupported language:', detectedLang);
+        startRecognition();
       }
-    }
-  
-    // 更新音量条
-    function updateVolumeBar(volume) {
-      const volumeFill = document.getElementById("volumeFill");
-      const volumeLevel = document.getElementById("volumeLevel");
-      const percentage = Math.min(100, volume);
-      volumeFill.style.width = percentage + "%";
-      volumeLevel.innerText = `Volume: ${Math.round(volume)} (Threshold: 10)`;
-    }
-  
-    // 重置录音
-    function resetRecording() {
-      speechDuration = 0;
-      isMessageReady = false;
-      updateStatus("請說，我在聽");
-  
-      // 重新开始监听
-      if (audioStream) {
-        // 重新初始化 MediaRecorder
-        initializeAudioProcessing();
-      }
-    }
-  
-    // 更新状态文本
-    function updateStatus(statusText) {
-      document.getElementById("status").innerText = statusText;
     }
 
-    // 更新消息
-    function addMessage(content, sender) {
-      const msgDiv = document.createElement("div");
-      msgDiv.className = `chat-message ${sender === "user" ? "message-user" : "message-system"}`;
-      msgDiv.innerText = content;
-      messageContainer.appendChild(msgDiv);
-      messageContainer.scrollTop = messageContainer.scrollHeight;
+    function startRecognition() {
+      recognition.abort();
+      recognition.start();
     }
-  
-    // 清空消息
-    function clearMessages() {
-      messageContainer.innerHTML = '';
-    }
-  
-    // Start recording on load
-    addMessage("Talk to me.", "system");
-    startRecording();
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript.trim();
+      answerEl.textContent = `✅ คำตอบ: ${transcript}`;
+
+      if (questions[currentIndex].key === "gender") {
+        const lower = transcript.toLowerCase();
+        if (["ชาย", "ผู้ชาย", "man", "male"].some(w => lower.includes(w))) {
+          answers["gender"] = "ชาย / 男";
+        } else if (["หญิง", "ผู้หญิง", "woman", "female"].some(w => lower.includes(w))) {
+          answers["gender"] = "หญิง / 女";
+        } else {
+          answers["gender"] = transcript;
+        }
+      } else {
+        answers[questions[currentIndex].key] = transcript;
+      }
+
+      resultEl.textContent = JSON.stringify(answers, null, 2);
+      currentIndex++;
+    };
+
+    recognition.onend = () => {
+      if (currentIndex < questions.length) {
+        setTimeout(askQuestion, 1000);
+      } else {
+        questionEl.textContent = "✅ เสร็จสิ้นทุกคำถามแล้ว ขอบคุณค่ะ / 完成所有问题，谢谢！";
+        answerEl.textContent = "";
+        startBtn.disabled = false;
+      }
+    };
+
+    recognition.onerror = (event) => {
+      answerEl.textContent = "❌ เกิดข้อผิดพลาด: " + event.error;
+      recognition.abort();
+      startBtn.disabled = false;
+    };
   </script>
 </body>
 </html>
