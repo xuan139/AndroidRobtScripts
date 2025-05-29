@@ -24,7 +24,12 @@ load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 
 # 初始化 OpenAI 客户端
-client = OpenAI(api_key=api_key)
+# client = OpenAI(api_key=api_key)
+
+client = OpenAI(
+    base_url="https://go.much-ai.com/v1",
+    api_key=api_key
+)
 
 last_gpt_reply = None
 last_transcript_text = None
@@ -180,55 +185,58 @@ async def upload_audio_base64(request: Request):
     audio_file.name = 'audio.mp3'  # 设置文件名
 
     start = time.perf_counter()
-    # try:
-    #     transcript = client.audio.transcriptions.create(
-    #         model="whisper-1",
-    #         file=audio_file,
-    #         response_format="verbose_json"
-    #     )
+    try:
+        transcript = client.audio.transcriptions.create(
+            model="whisper-1",
+            file=audio_file,
+            response_format="verbose_json"
+        )
 
-    #     end = time.perf_counter()
-    #     print(f"🕒 Whisper 語音識別耗時: {end - start:.4f} 秒")
+        end = time.perf_counter()
+        print(f"🕒 Whisper 語音識別耗時: {end - start:.4f} 秒")
 
-    #     print("新文本", transcript.text)
-    #     print("新语言" , transcript.language)  
-    # except Exception as e:
-    #     return JSONResponse(content={"error": f"Whisper API error: {str(e)}"}, status_code=500)
+        print("新文本", transcript.text)
+        print("新语言" , transcript.language)  
+    except Exception as e:
+        return JSONResponse(content={"error": f"Whisper API error: {str(e)}"}, status_code=500)
 
 
         # 使用 tiny 模型（速度最快），可選 cpu 或 cuda
-    model = WhisperModel("large-v2", device="cuda", compute_type="float16")
+    # model = WhisperModel("large-v2", device="cuda", compute_type="float16")
     # model = WhisperModel("tiny", device="cpu")
-    start_time = time.time()
+    # start_time = time.time()
 
-    # 将 BytesIO 写入临时文件
-    with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
-        tmp.write(audio_data)
-        tmp.flush()
-        audio_path = tmp.name  # 临时文件路径
-        # 然后传给 transcribe
-        segments, info = model.transcribe(audio_path)
+    # # 将 BytesIO 写入临时文件
+    # with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
+    #     tmp.write(audio_data)
+    #     tmp.flush()
+    #     audio_path = tmp.name  # 临时文件路径
+    #     # 然后传给 transcribe
+    #     segments, info = model.transcribe(audio_path)
 
 
-    segments, info = model.transcribe(audio_path)
-    segments = list(segments)  # 🔥 關鍵：materialize generator
-    end_time = time.time()
+    # segments, info = model.transcribe(audio_path)
+    # segments = list(segments)  # 🔥 關鍵：materialize generator
+    # end_time = time.time()
 
-    print(f"語言偵測結果：{info.language}")
-    for segment in segments:
-        print(f"[{segment.start:.2f}s - {segment.end:.2f}s]: {segment.text}")
+    # print(f"語言偵測結果：{info.language}")
+    # for segment in segments:
+    #     print(f"[{segment.start:.2f}s - {segment.end:.2f}s]: {segment.text}")
 
-    full_text = " ".join([segment.text for segment in segments])
-    print("完整文本內容：", full_text)
-    print(f"轉錄花費時間：{end_time - start_time:.2f} 秒")
+    # full_text = " ".join([segment.text for segment in segments])
+    # print("完整文本內容：", full_text)
+    # print(f"轉錄花費時間：{end_time - start_time:.2f} 秒")
 
     print("last_gpt_reply",last_gpt_reply)
+
+
+ 
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "assistant", "content": last_transcript_text},
         {"role": "assistant", "content": last_transcript_language},
         {"role": "assistant", "content": last_gpt_reply},
-        {"role": "user", "content": full_text}
+        {"role": "user", "content": transcript.text}
     ]
 
     start = time.perf_counter()
@@ -280,7 +288,7 @@ async def upload_audio_base64(request: Request):
  
     return {
         "transcript": reply_text,
-        "language": info.language,
+        "language": transcript.language,
         "gpt_reply_data": gpt_reply_data,
         "tts_audio_url": audio_url
     }

@@ -1,123 +1,179 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>横向滑动菜单卡片</title>
+  <meta charset="UTF-8" />
+  <title>แบบสอบถามด้วยเสียง (逐题语音问答)</title>
   <style>
     body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f9;
+      color: #333;
       margin: 0;
-      font-family: sans-serif;
-      background: #f0f0f0;
+      padding: 40px;
     }
-
-    .scroll-container {
-      display: flex;
-      overflow-x: auto;
-      gap: 12px;
-      padding: 20px;
-      scroll-snap-type: x mandatory;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .card {
-      flex: 0 0 auto;
-      width: 200px;
+    .container {
+      max-width: 600px;
+      margin: auto;
       background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      scroll-snap-align: start;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     }
-
-    .card img {
-      width: 100%;
-      height: 120px;
-      object-fit: cover;
-      border-top-left-radius: 12px;
-      border-top-right-radius: 12px;
+    h2 {
+      text-align: center;
+      color: #2b7bba;
     }
-
-    .card .content {
-      padding: 10px;
+    button {
+      display: block;
+      margin: 20px auto;
+      background-color: #2b7bba;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background 0.3s;
     }
-
-    .card .title {
-      font-size: 16px;
-      font-weight: bold;
-      margin-bottom: 5px;
+    button:hover {
+      background-color: #1e5f8f;
     }
-
-    .card .price {
-      color: #666;
+    #question {
+      font-size: 20px;
+      text-align: center;
+      margin: 30px 0 10px;
+      min-height: 70px; /* 高一点，防止换行闪烁 */
+      white-space: pre-line; /* 支持换行 */
+    }
+    #answer {
+      text-align: center;
+      font-size: 18px;
+      color: green;
+      margin-bottom: 20px;
+      min-height: 24px;
+    }
+    #result {
+      background: #f9f9f9;
+      border-radius: 8px;
+      padding: 15px;
+      white-space: pre-wrap;
+      font-size: 14px;
+      color: #444;
+      overflow: auto;
     }
   </style>
 </head>
 <body>
-
-  <div class="scroll-container">
-    <div class="card">
-      <img src="https://via.placeholder.com/200x120?text=菜品1">
-      <div class="content">
-        <div class="title">菜品1</div>
-        <div class="price">₩10000</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <img src="https://via.placeholder.com/200x120?text=菜品2">
-      <div class="content">
-        <div class="title">菜品2</div>
-        <div class="price">₩12000</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <img src="https://via.placeholder.com/200x120?text=菜品3">
-      <div class="content">
-        <div class="title">菜品3</div>
-        <div class="price">₩8000</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <img src="https://via.placeholder.com/200x120?text=菜品4">
-      <div class="content">
-        <div class="title">菜品4</div>
-        <div class="price">₩15000</div>
-      </div>
-    </div>
-
-    <div class="card">
-        <img src="https://via.placeholder.com/200x120?text=菜品4">
-        <div class="content">
-          <div class="title">菜品4</div>
-          <div class="price">₩15000</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <img src="https://via.placeholder.com/200x120?text=菜品4">
-        <div class="content">
-          <div class="title">菜品4</div>
-          <div class="price">₩15000</div>
-        </div>
-      </div>
-      <div class="card">
-        <img src="https://via.placeholder.com/200x120?text=菜品4">
-        <div class="content">
-          <div class="title">菜品4</div>
-          <div class="price">₩15000</div>
-        </div>
-      </div>
-
-    <div class="card">
-      <img src="https://via.placeholder.com/200x120?text=菜品5">
-      <div class="content">
-        <div class="title">菜品5</div>
-        <div class="price">₩9900</div>
-      </div>
-    </div>
+  <div class="container">
+    <h2>🎤 แบบสอบถามด้วยเสียง (逐题语音问答)</h2>
+    <button id="startBtn">▶ เริ่มตอบแบบสอบถาม</button>
+    <div id="question">คำถามจะแสดงที่นี่</div>
+    <div id="answer"></div>
+    <pre id="result">{}</pre>
   </div>
 
+  <script>
+    const questions = [
+      { textTh: "1. คุณชื่ออะไร", textCn: "你叫什么名字", key: "name" },
+      { textTh: "2. คุณอายุเท่าไหร่", textCn: "你多大了", key: "age" },
+      { textTh: "3. เพศของคุณคืออะไร", textCn: "你的性别是什么", key: "gender" },
+      { textTh: "4. ที่อยู่ของคุณคืออะไร", textCn: "你的地址是什么", key: "address" },
+      { textTh: "5. อาชีพของคุณคืออะไร", textCn: "你的职业是什么", key: "job" },
+      { textTh: "6. งานอดิเรกของคุณคืออะไร", textCn: "你的兴趣爱好是什么", key: "hobbies" },
+      { textTh: "7. อาหารที่คุณชอบ", textCn: "你喜欢什么食物", key: "food" },
+      { textTh: "8. คุณมีสัตว์เลี้ยงไหม", textCn: "你有宠物吗", key: "pets" },
+      { textTh: "9. คุณพูดภาษาอะไร", textCn: "你说什么语言", key: "language" },
+      { textTh: "10. สีที่คุณชอบ", textCn: "你喜欢什么颜色", key: "color" }
+    ];
+
+    const questionEl = document.getElementById("question");
+    const answerEl = document.getElementById("answer");
+    const resultEl = document.getElementById("result");
+    const startBtn = document.getElementById("startBtn");
+
+    let currentIndex = 0;
+    const answers = {};
+
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = "th-TH";
+    recognition.interimResults = false;
+    recognition.continuous = false;
+
+    startBtn.addEventListener("click", () => {
+      currentIndex = 0;
+      Object.keys(answers).forEach(k => delete answers[k]);
+      resultEl.textContent = "{}";
+      askQuestion();
+      startBtn.disabled = true;
+    });
+
+    function askQuestion() {
+      if (currentIndex >= questions.length) {
+        questionEl.textContent = "✅ เสร็จสิ้นทุกคำถามแล้ว ขอบคุณค่ะ / 完成所有问题，谢谢！";
+        answerEl.textContent = "";
+        startBtn.disabled = false;
+        return;
+      }
+
+      const currentQ = questions[currentIndex];
+      questionEl.textContent = `${currentQ.textTh}\n${currentQ.textCn}`;
+      answerEl.textContent = "🎤 กรุณาพูดตอบ...";
+      recognition.lang = "th-TH";
+
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(currentQ.textTh);
+        utterance.lang = 'th-TH';
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utterance);
+        utterance.onend = () => {
+          startRecognition();
+        };
+      } else {
+        startRecognition();
+      }
+    }
+
+    function startRecognition() {
+      recognition.abort();
+      recognition.start();
+    }
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript.trim();
+      answerEl.textContent = `✅ คำตอบ: ${transcript}`;
+
+      if (questions[currentIndex].key === "gender") {
+        const lower = transcript.toLowerCase();
+        if (["ชาย", "ผู้ชาย", "man", "male"].some(w => lower.includes(w))) {
+          answers["gender"] = "ชาย / 男";
+        } else if (["หญิง", "ผู้หญิง", "woman", "female"].some(w => lower.includes(w))) {
+          answers["gender"] = "หญิง / 女";
+        } else {
+          answers["gender"] = transcript;
+        }
+      } else {
+        answers[questions[currentIndex].key] = transcript;
+      }
+
+      resultEl.textContent = JSON.stringify(answers, null, 2);
+      currentIndex++;
+    };
+
+    recognition.onend = () => {
+      if (currentIndex < questions.length) {
+        setTimeout(askQuestion, 1000);
+      } else {
+        questionEl.textContent = "✅ เสร็จสิ้นทุกคำถามแล้ว ขอบคุณค่ะ / 完成所有问题，谢谢！";
+        answerEl.textContent = "";
+        startBtn.disabled = false;
+      }
+    };
+
+    recognition.onerror = (event) => {
+      answerEl.textContent = "❌ เกิดข้อผิดพลาด: " + event.error;
+      recognition.abort();
+      startBtn.disabled = false;
+    };
+  </script>
 </body>
 </html>
